@@ -1,16 +1,15 @@
 {
   "name": "voltr-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "SDK for interacting with Voltr Protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "idl"
+    "dist"
   ],
   "scripts": {
     "clean": "rm -rf dist docs docs-md",
-    "build": "npm run clean && tsc && cp -r idl dist/",
+    "build": "npm run clean && tsc",
     "prepare": "npm run build",
     "docs": "typedoc --out docs src/index.ts",
     "docs:watch": "typedoc --out docs src/index.ts --watch",

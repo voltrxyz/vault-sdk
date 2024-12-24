@@ -22,8 +22,8 @@ import { SEEDS } from "./constants";
 import { VaultParams, VoltrVault, VoltrAdaptor } from "./types";
 
 // Import IDL files
-import * as vaultIdl from "../idl/voltr_vault.json";
-import * as adaptorIdl from "../idl/voltr_adaptor.json";
+import * as vaultIdl from "./idl/voltr_vault.json";
+import * as adaptorIdl from "./idl/voltr_adaptor.json";
 
 class CustomWallet implements Wallet {
   constructor(readonly payer: Keypair) {}

@@ -3,11 +3,10 @@
       "target": "es2020",
       "module": "commonjs",
       "declaration": true,
-      "outDir": "./dist",
+      "outDir": "./dist",  // This should output directly to dist, not dist/src
       "strict": true,
       "esModuleInterop": true,
       "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
       "resolveJsonModule": true
     },
     "include": ["src"],
