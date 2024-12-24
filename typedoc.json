@@ -1,0 +1,15 @@
+{
+    "entryPoints": ["src/index.ts"],
+    "out": "docs",
+    "name": "Voltr SDK",
+    "theme": "default",
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "hideGenerator": true,
+    "categorizeByGroup": true,
+    "categoryOrder": ["Client", "Instructions", "PDAs", "Accounts", "Types", "*"],
+    "navigationLinks": {
+      "GitHub": "https://github.com/jakeyvee/voltr-sdk"
+    }
+  }
