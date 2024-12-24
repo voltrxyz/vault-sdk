@@ -1,19 +1,22 @@
 {
   "name": "voltr-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SDK for interacting with Voltr Protocol",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "idl"
   ],
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf dist docs docs-md",
+    "build": "npm run clean && tsc && cp -r idl dist/",
     "prepare": "npm run build",
     "docs": "typedoc --out docs src/index.ts",
     "docs:watch": "typedoc --out docs src/index.ts --watch",
     "docs:markdown": "typedoc --out docs-md src/index.ts --plugin typedoc-plugin-markdown",
-    "docs:deploy": "gh-pages -d docs"
+    "docs:deploy": "npm run docs && gh-pages -d docs",
+    "prepublishOnly": "npm run build && npm run docs"
   },
   "keywords": [
     "solana",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "gh-pages": "^6.2.0",
     "typedoc": "^0.27.5",
     "typedoc-plugin-markdown": "^4.3.3",
     "typescript": "^5.7.2"
