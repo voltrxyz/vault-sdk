@@ -67,7 +67,7 @@ class AccountUtils {
  *
  * @example
  * ```typescript
- * import { VoltrClient } from 'voltr-sdk';
+ * import { VoltrClient } from '@voltr/sdk';
  * import { Connection } from '@solana/web3.js';
  *
  * const connection = new Connection('https://api.mainnet-beta.solana.com');
