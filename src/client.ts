@@ -704,6 +704,27 @@ export class VoltrClient extends AccountUtils {
     return await this.adaptorProgram.account.strategy.all();
   }
 
+  /**
+   * Fetches all vault strategy accounts
+   * @param vaultAssetIdleAuth - Public key of the vault asset idle auth
+   * @returns Promise resolving to an array of vault strategy accounts
+   *
+   * @example
+   * ```typescript
+   * const vaultStrategyAccounts = await client.fetchVaultStrategyAccounts(vaultAssetIdleAuthPubkey);
+   * ```
+   */
+  async fetchVaultStrategyAccounts(vaultAssetIdleAuth: PublicKey) {
+    return await this.adaptorProgram.account.vaultStrategy.all([
+      {
+        memcmp: {
+          offset: 8, // 8 for discriminator
+          bytes: vaultAssetIdleAuth.toBase58(),
+        },
+      },
+    ]);
+  }
+
   // --------------------------------------- Account Fetching
 
   /**
