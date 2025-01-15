@@ -1,0 +1,6 @@
+.env
+scripts/
+dist/
+node_modules/
+/docs
+/docs-md
