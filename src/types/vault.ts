@@ -1,10 +1,12 @@
-import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 
 export interface VaultConfig {
-  managementFee: number;
-  performanceFee: number;
   maxCap: BN;
+  startAtTs: BN;
+  managerManagementFee: number;
+  managerPerformanceFee: number;
+  adminManagementFee: number;
+  adminPerformanceFee: number;
 }
 
 export interface VaultParams {
@@ -13,24 +15,15 @@ export interface VaultParams {
   description: string;
 }
 
-export interface VaultAsset {
-  assetMint: PublicKey;
-  idleAta: PublicKey;
-  totalAmount: BN;
+export interface InitializeStrategyArgs {
+  instructionDiscriminator?: Buffer | null;
+  additionalArgs?: Buffer | null;
 }
 
-export interface VaultLp {
-  lpMint: PublicKey;
-  feeAta: PublicKey;
+export interface depositStrategyArgs extends InitializeStrategyArgs {
+  depositAmount: BN;
 }
 
-export interface Vault {
-  name: number[];
-  description: number[];
-  asset: VaultAsset;
-  lp: VaultLp;
-  manager: PublicKey;
-  admin: PublicKey;
-  configuration: VaultConfig;
-  lastUpdateSlot: BN;
+export interface withdrawStrategyArgs extends InitializeStrategyArgs {
+  withdrawAmount: BN;
 }

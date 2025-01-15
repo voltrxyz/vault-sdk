@@ -1,5 +1,5 @@
 {
-  "name": "@voltr/sdk",
+  "name": "@voltr/vault-sdk",
   "version": "0.1.0",
   "description": "SDK for interacting with Voltr Protocol",
   "main": "dist/index.js",
@@ -20,6 +20,7 @@
   "keywords": [
     "solana",
     "voltr",
+    "vault",
     "sdk"
   ],
   "author": "voltr",
