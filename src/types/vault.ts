@@ -20,10 +20,10 @@ export interface InitializeStrategyArgs {
   additionalArgs?: Buffer | null;
 }
 
-export interface depositStrategyArgs extends InitializeStrategyArgs {
+export interface DepositStrategyArgs extends InitializeStrategyArgs {
   depositAmount: BN;
 }
 
-export interface withdrawStrategyArgs extends InitializeStrategyArgs {
+export interface WithdrawStrategyArgs extends InitializeStrategyArgs {
   withdrawAmount: BN;
 }

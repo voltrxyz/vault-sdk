@@ -23,8 +23,8 @@ import {
   VaultParams,
   VoltrVault,
   InitializeStrategyArgs,
-  depositStrategyArgs,
-  withdrawStrategyArgs,
+  DepositStrategyArgs,
+  WithdrawStrategyArgs,
 } from "./types";
 
 // Import IDL files
@@ -583,7 +583,7 @@ export class VoltrClient extends AccountUtils {
       depositAmount,
       instructionDiscriminator = null,
       additionalArgs = null,
-    }: depositStrategyArgs,
+    }: DepositStrategyArgs,
     {
       vault,
       vaultAssetMint,
@@ -658,7 +658,7 @@ export class VoltrClient extends AccountUtils {
       withdrawAmount,
       instructionDiscriminator = null,
       additionalArgs = null,
-    }: withdrawStrategyArgs,
+    }: WithdrawStrategyArgs,
     {
       vault,
       vaultAssetMint,
