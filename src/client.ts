@@ -18,13 +18,19 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 
-import { DEFAULT_ADAPTOR_PROGRAM_ID, SEEDS } from "./constants";
+import {
+  DEFAULT_ADAPTOR_PROGRAM_ID,
+  REDEMPTION_FEE_PERCENTAGE_BPS,
+  SEEDS,
+} from "./constants";
 import {
   VaultParams,
   VoltrVault,
   InitializeStrategyArgs,
   DepositStrategyArgs,
   WithdrawStrategyArgs,
+  InitializeDirectWithdrawStrategyArgs,
+  DirectWithdrawStrategyArgs,
 } from "./types";
 
 // Import IDL files
@@ -166,24 +172,6 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
-   * Finds the vault's LP fee authority address
-   * @param vault - Public key of the vault
-   * @returns The PDA for the vault's LP fee authority
-   *
-   * @example
-   * ```typescript
-   * const feeAuth = client.findVaultLpFeeAuth(vaultPubkey);
-   * ```
-   */
-  findVaultLpFeeAuth(vault: PublicKey) {
-    const [vaultLpFeeAuth] = PublicKey.findProgramAddressSync(
-      [SEEDS.VAULT_LP_FEE_AUTH, vault.toBuffer()],
-      this.vaultProgram.programId
-    );
-    return vaultLpFeeAuth;
-  }
-
-  /**
    * Finds all vault-related addresses
    * @param vault - Public key of the vault
    * @returns Object containing all vault-related PDAs
@@ -199,12 +187,10 @@ export class VoltrClient extends AccountUtils {
   findVaultAddresses(vault: PublicKey) {
     const vaultLpMint = this.findVaultLpMint(vault);
     const vaultAssetIdleAuth = this.findVaultAssetIdleAuth(vault);
-    const vaultLpFeeAuth = this.findVaultLpFeeAuth(vault);
 
     return {
       vaultLpMint,
       vaultAssetIdleAuth,
-      vaultLpFeeAuth,
     };
   }
 
@@ -244,6 +230,44 @@ export class VoltrClient extends AccountUtils {
       this.vaultProgram.programId
     );
     return strategyInitReceipt;
+  }
+
+  /**
+   * Finds the direct withdraw init receipt address
+   * @param vault - Public key of the vault
+   * @param strategy - Public key of the strategy
+   * @returns The PDA for the direct withdraw init receipt
+   *
+   * @example
+   * ```typescript
+   * const directWithdrawInitReceipt = client.findDirectWithdrawInitReceipt(vaultPubkey, strategyPubkey);
+   * ```
+   */
+  findDirectWithdrawInitReceipt(vault: PublicKey, strategy: PublicKey) {
+    const [directWithdrawInitReceipt] = PublicKey.findProgramAddressSync(
+      [
+        SEEDS.DIRECT_WITHDRAW_INIT_RECEIPT_SEED,
+        vault.toBuffer(),
+        strategy.toBuffer(),
+      ],
+      this.vaultProgram.programId
+    );
+    return directWithdrawInitReceipt;
+  }
+
+  findVaultStrategyAddresses(vault: PublicKey, strategy: PublicKey) {
+    const vaultStrategyAuth = this.findVaultStrategyAuth(vault, strategy);
+    const strategyInitReceipt = this.findStrategyInitReceipt(vault, strategy);
+    const directWithdrawInitReceipt = this.findDirectWithdrawInitReceipt(
+      vault,
+      strategy
+    );
+
+    return {
+      vaultStrategyAuth,
+      strategyInitReceipt,
+      directWithdrawInitReceipt,
+    };
   }
 
   // --------------------------------------- Vault Instructions
@@ -317,12 +341,6 @@ export class VoltrClient extends AccountUtils {
       true
     );
 
-    const vaultLpFeeAta = getAssociatedTokenAddressSync(
-      addresses.vaultLpMint,
-      addresses.vaultLpFeeAuth,
-      true
-    );
-
     return await this.vaultProgram.methods
       .initialize(vaultParams.config, vaultParams.name, vaultParams.description)
       .accounts({
@@ -332,7 +350,6 @@ export class VoltrClient extends AccountUtils {
         vault: vault.publicKey,
         vaultAssetMint,
         vaultAssetIdleAta,
-        vaultLpFeeAta,
         assetTokenProgram: TOKEN_PROGRAM_ID,
       })
       .instruction();
@@ -444,6 +461,7 @@ export class VoltrClient extends AccountUtils {
    * @param {Object} params - Parameters for adding adaptor to vault
    * @param {PublicKey} params.vault - Public key of the vault
    * @param {PublicKey} params.payer - Public key of the payer
+   * @param {PublicKey} params.admin - Public key of the admin
    * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
    * @returns {Promise<TransactionInstruction>} Transaction instruction for adding adaptor to vault
    *
@@ -454,6 +472,7 @@ export class VoltrClient extends AccountUtils {
    * const ix = await client.createAddAdaptorIx({
    *   vault: vaultPubkey,
    *   payer: payerPubkey,
+   *   admin: adminPubkey,
    *   adaptorProgram: adaptorProgramPubkey
    * });
    * ```
@@ -461,16 +480,19 @@ export class VoltrClient extends AccountUtils {
   async createAddAdaptorIx({
     vault,
     payer,
+    admin,
     adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
   }: {
     vault: PublicKey;
     payer: PublicKey;
+    admin: PublicKey;
     adaptorProgram?: PublicKey;
   }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .addAdaptor()
-      .accounts({
+      .accountsPartial({
         payer,
+        admin,
         vault,
         adaptorProgram,
       })
@@ -488,6 +510,7 @@ export class VoltrClient extends AccountUtils {
    * @param {PublicKey} params.manager - Public key of the manager
    * @param {PublicKey} params.strategy - Public key of the strategy
    * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
+   * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
    * @returns {Promise<TransactionInstruction>} Transaction instruction for initializing strategy to vault
    * @throws {Error} If the instruction creation fails
    *
@@ -503,7 +526,8 @@ export class VoltrClient extends AccountUtils {
    *     vault: vaultPubkey,
    *     manager: managerPubkey,
    *     strategy: strategyPubkey,
-   *     adaptorProgram: adaptorProgramPubkey
+   *     adaptorProgram: adaptorProgramPubkey,
+   *     remainingAccounts: []
    *   }
    * );
    * ```
@@ -519,12 +543,18 @@ export class VoltrClient extends AccountUtils {
       manager,
       strategy,
       adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      remainingAccounts,
     }: {
       payer: PublicKey;
       vault: PublicKey;
       manager: PublicKey;
       strategy: PublicKey;
       adaptorProgram?: PublicKey;
+      remainingAccounts: Array<{
+        pubkey: PublicKey;
+        isSigner: boolean;
+        isWritable: boolean;
+      }>;
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
@@ -539,17 +569,19 @@ export class VoltrClient extends AccountUtils {
         strategy,
         adaptorProgram,
       })
+      .remainingAccounts(remainingAccounts)
       .instruction();
   }
 
   /**
    * Creates an instruction to deposit assets into a strategy
    *
-   * @param {Object} depositArgs - Deposit arguments
+   * @param {DepositStrategyArgs} depositArgs - Deposit arguments
    * @param {BN} depositArgs.depositAmount - Amount of assets to deposit
    * @param {Buffer | null} [depositArgs.instructionDiscriminator] - Optional discriminator for the instruction
    * @param {Buffer | null} [depositArgs.additionalArgs] - Optional additional arguments for the instruction
    * @param {Object} params - Strategy deposit parameters
+   * @param {PublicKey} params.manager - Public key of the manager
    * @param {PublicKey} params.vault - Public key of the vault
    * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
    * @param {PublicKey} params.strategy - Public key of the strategy
@@ -568,6 +600,7 @@ export class VoltrClient extends AccountUtils {
    *     additionalArgs: Buffer.from('...')
    *   },
    *   {
+   *     manager: managerPubkey,
    *     vault: vaultPubkey,
    *     vaultAssetMint: mintPubkey,
    *     strategy: strategyPubkey,
@@ -585,6 +618,7 @@ export class VoltrClient extends AccountUtils {
       additionalArgs = null,
     }: DepositStrategyArgs,
     {
+      manager,
       vault,
       vaultAssetMint,
       strategy,
@@ -592,6 +626,7 @@ export class VoltrClient extends AccountUtils {
       adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
+      manager: PublicKey;
       vault: PublicKey;
       vaultAssetMint: PublicKey;
       strategy: PublicKey;
@@ -607,6 +642,7 @@ export class VoltrClient extends AccountUtils {
     return await this.vaultProgram.methods
       .depositStrategy(depositAmount, instructionDiscriminator, additionalArgs)
       .accounts({
+        manager,
         vault,
         vaultAssetMint,
         adaptorProgram,
@@ -620,7 +656,7 @@ export class VoltrClient extends AccountUtils {
   /**
    * Creates an instruction to withdraw assets from a strategy
    *
-   * @param {Object} withdrawArgs - Withdrawal arguments
+   * @param {WithdrawStrategyArgs} withdrawArgs - Withdrawal arguments
    * @param {BN} withdrawArgs.withdrawAmount - Amount of assets to withdraw
    * @param {Buffer | null} [withdrawArgs.instructionDiscriminator] - Optional discriminator for the instruction
    * @param {Buffer | null} [withdrawArgs.additionalArgs] - Optional additional arguments for the instruction
@@ -660,6 +696,7 @@ export class VoltrClient extends AccountUtils {
       additionalArgs = null,
     }: WithdrawStrategyArgs,
     {
+      manager,
       vault,
       vaultAssetMint,
       strategy,
@@ -667,6 +704,7 @@ export class VoltrClient extends AccountUtils {
       adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
+      manager: PublicKey;
       vault: PublicKey;
       vaultAssetMint: PublicKey;
       strategy: PublicKey;
@@ -686,6 +724,7 @@ export class VoltrClient extends AccountUtils {
         additionalArgs
       )
       .accounts({
+        manager,
         vault,
         vaultAssetMint,
         adaptorProgram,
@@ -700,31 +739,178 @@ export class VoltrClient extends AccountUtils {
    * Creates an instruction to remove a strategy from a vault
    * @param {Object} params - Parameters for removing strategy
    * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.admin - Public key of the admin
    * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
-   * @returns {Promise<TransactionInstruction>} Transaction instruction for removing strategy from vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for removing adaptor from vault
    * @throws {Error} If instruction creation fails
    *
    * @example
    * ```typescript
-   * const ix = await client.createRemoveStrategyIx({
+   * const ix = await client.createRemoveAdaptorIx({
    *   vault: vaultPubkey,
+   *   admin: adminPubkey,
    *   adaptorProgram: adaptorProgramPubkey
    * });
    * ```
    */
-  async createRemoveStrategyIx({
+  async createRemoveAdaptorIx({
     vault,
+    admin,
     adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
   }: {
     vault: PublicKey;
+    admin: PublicKey;
     adaptorProgram?: PublicKey;
   }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .removeAdaptor()
-      .accounts({
+      .accountsPartial({
         vault,
+        admin,
         adaptorProgram,
       })
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to initialize a direct withdraw strategy
+   * @param {InitializeDirectWithdrawStrategyArgs} initArgs - Arguments for initializing direct withdraw strategy
+   * @param {Buffer | null} initArgs.instructionDiscriminator - Optional discriminator for the instruction
+   * @param {Buffer | null} initArgs.additionalArgs - Optional additional arguments for the instruction
+   * @param {boolean} initArgs.allowUserArgs - Whether to allow user arguments
+   * @param {Object} params - Parameters for initializing direct withdraw strategy
+   * @param {PublicKey} params.payer - Public key of the payer
+   * @param {PublicKey} params.admin - Public key of the admin
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for initializing direct withdraw strategy
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createInitializeDirectWithdrawStrategyIx(
+   *   {
+   *     instructionDiscriminator: Buffer.from('...'),
+   *     additionalArgs: Buffer.from('...'),
+   *     allowUserArgs: true
+   *   },
+   *   {
+   *     payer: payerPubkey,
+   *     admin: adminPubkey,
+   *     vault: vaultPubkey,
+   *     strategy: strategyPubkey,
+   *     adaptorProgram: adaptorProgramPubkey
+   *   }
+   * );
+   * ```
+   */
+  async createInitializeDirectWithdrawStrategyIx(
+    {
+      instructionDiscriminator = null,
+      additionalArgs = null,
+      allowUserArgs = false,
+    }: InitializeDirectWithdrawStrategyArgs,
+    {
+      payer,
+      admin,
+      vault,
+      strategy,
+      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+    }: {
+      payer: PublicKey;
+      admin: PublicKey;
+      vault: PublicKey;
+      strategy: PublicKey;
+      adaptorProgram?: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .initializeDirectWithdrawStrategy(
+        instructionDiscriminator,
+        additionalArgs,
+        allowUserArgs
+      )
+      .accountsPartial({
+        payer,
+        admin,
+        vault,
+        strategy,
+        adaptorProgram,
+      })
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to withdraw assets from a direct withdraw strategy
+   * @param {DirectWithdrawStrategyArgs} withdrawArgs - Withdrawal arguments
+   * @param {BN} withdrawArgs.withdrawAmount - Amount of assets to withdraw
+   * @param {Buffer | null} [withdrawArgs.userArgs] - Optional user arguments for the instruction
+   * @param {Object} params - Parameters for withdrawing assets from direct withdraw strategy
+   * @param {PublicKey} params.user - Public key of the user
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
+   * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
+   * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
+   * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawing assets from direct withdraw strategy
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createDirectWithdrawStrategyIx(
+   *   {
+   *     withdrawAmount: new BN('1000000000'),
+   *     userArgs: Buffer.from('...')
+   *   },
+   *   {
+   *     user: userPubkey,
+   *     vault: vaultPubkey,
+   *     strategy: strategyPubkey,
+   *     vaultAssetMint: mintPubkey,
+   *     assetTokenProgram: tokenProgramPubkey,
+   *     adaptorProgram: adaptorProgramPubkey,
+   *     remainingAccounts: []
+   *   }
+   * );
+   * ```
+   */
+  async createDirectWithdrawStrategyIx(
+    { withdrawAmount, userArgs = null }: DirectWithdrawStrategyArgs,
+    {
+      user,
+      vault,
+      strategy,
+      vaultAssetMint,
+      assetTokenProgram,
+      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      remainingAccounts,
+    }: {
+      user: PublicKey;
+      vault: PublicKey;
+      strategy: PublicKey;
+      vaultAssetMint: PublicKey;
+      assetTokenProgram: PublicKey;
+      adaptorProgram?: PublicKey;
+      remainingAccounts: Array<{
+        pubkey: PublicKey;
+        isSigner: boolean;
+        isWritable: boolean;
+      }>;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .directWithdrawStrategy(withdrawAmount, userArgs)
+      .accounts({
+        userTransferAuthority: user,
+        strategy,
+        adaptorProgram,
+        vault,
+        vaultAssetMint,
+        assetTokenProgram,
+      })
+      .remainingAccounts(remainingAccounts)
       .instruction();
   }
 
@@ -881,9 +1067,14 @@ export class VoltrClient extends AccountUtils {
     if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
     if (totalValue <= new BN(0)) throw new Error("Invalid total assets");
 
+    const amountPreRedemption = lpAmount.mul(totalValue).div(lpSupply);
+    const amount = amountPreRedemption
+      .mul(new BN(10000 - REDEMPTION_FEE_PERCENTAGE_BPS))
+      .div(new BN(10000));
+
     // Calculate: (lpAmount * totalValue) / totalLpSupply
     try {
-      return lpAmount.mul(totalValue).div(lpSupply);
+      return amount;
     } catch (e) {
       throw new Error("Math overflow in asset calculation");
     }

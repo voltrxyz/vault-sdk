@@ -27,3 +27,13 @@ export interface DepositStrategyArgs extends InitializeStrategyArgs {
 export interface WithdrawStrategyArgs extends InitializeStrategyArgs {
   withdrawAmount: BN;
 }
+
+export interface InitializeDirectWithdrawStrategyArgs
+  extends InitializeStrategyArgs {
+  allowUserArgs?: boolean;
+}
+
+export interface DirectWithdrawStrategyArgs {
+  withdrawAmount: BN;
+  userArgs?: Buffer | null;
+}
