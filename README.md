@@ -6,10 +6,10 @@ A TypeScript SDK for interacting with the Voltr protocol on Solana.
 
 - Complete TypeScript support with type definitions
 - Comprehensive vault management functionality
-- Strategy handling and execution
-- Asset deposit and withdrawal operations
-- PDA (Program Derived Address) utilities
-- Account data fetching and parsing
+- Strategy handling and execution with adaptor support
+- Asset deposit and withdrawal operations with direct withdraw capability
+- Account data fetching and PDA (Program Derived Address) utilities
+- Position and total value tracking
 
 ## Installation
 
@@ -60,28 +60,6 @@ const ix = await client.createInitializeVaultIx(vaultParams, {
 });
 ```
 
-### Deposit Assets
-
-```typescript
-const depositIx = await client.createDepositIx(new BN("1000000000"), {
-  userAuthority: userPubkey,
-  vault: vaultPubkey,
-  vaultAssetMint: mintPubkey,
-  assetTokenProgram: tokenProgramPubkey,
-});
-```
-
-### Withdraw Assets
-
-```typescript
-const withdrawIx = await client.createWithdrawIx(new BN("1000000000"), {
-  userAuthority: userPubkey,
-  vault: vaultPubkey,
-  vaultAssetMint: mintPubkey,
-  assetTokenProgram: tokenProgramPubkey,
-});
-```
-
 ### Strategy Management
 
 ```typescript
@@ -89,6 +67,7 @@ const withdrawIx = await client.createWithdrawIx(new BN("1000000000"), {
 const addAdaptorIx = await client.createAddAdaptorIx({
   vault: vaultPubkey,
   payer: payerPubkey,
+  admin: adminPubkey,
   adaptorProgram: adaptorProgramPubkey,
 });
 
@@ -104,20 +83,58 @@ const initStrategyIx = await client.createInitializeStrategyIx(
     manager: managerPubkey,
     strategy: strategyPubkey,
     adaptorProgram: adaptorProgramPubkey,
+    remainingAccounts: [],
   }
 );
 
-// Deposit into a strategy
-const depositStrategyIx = await client.createDepositStrategyIx(
+// Initialize direct withdraw strategy
+const initDirectWithdrawIx =
+  await client.createInitializeDirectWithdrawStrategyIx(
+    {
+      instructionDiscriminator: null,
+      additionalArgs: null,
+      allowUserArgs: true,
+    },
+    {
+      payer: payerPubkey,
+      admin: adminPubkey,
+      vault: vaultPubkey,
+      strategy: strategyPubkey,
+      adaptorProgram: adaptorProgramPubkey,
+    }
+  );
+```
+
+### Asset Operations
+
+```typescript
+// Deposit assets
+const depositIx = await client.createDepositIx(new BN("1000000000"), {
+  userAuthority: userPubkey,
+  vault: vaultPubkey,
+  vaultAssetMint: mintPubkey,
+  assetTokenProgram: tokenProgramPubkey,
+});
+
+// Withdraw assets
+const withdrawIx = await client.createWithdrawIx(new BN("1000000000"), {
+  userAuthority: userPubkey,
+  vault: vaultPubkey,
+  vaultAssetMint: mintPubkey,
+  assetTokenProgram: tokenProgramPubkey,
+});
+
+// Direct withdraw from strategy
+const directWithdrawIx = await client.createDirectWithdrawStrategyIx(
   {
-    depositAmount: new BN("1000000000"),
-    instructionDiscriminator: null,
-    additionalArgs: null,
+    withdrawAmount: new BN("1000000000"),
+    userArgs: null,
   },
   {
+    user: userPubkey,
     vault: vaultPubkey,
-    vaultAssetMint: mintPubkey,
     strategy: strategyPubkey,
+    vaultAssetMint: mintPubkey,
     assetTokenProgram: tokenProgramPubkey,
     adaptorProgram: adaptorProgramPubkey,
     remainingAccounts: [],
@@ -125,53 +142,56 @@ const depositStrategyIx = await client.createDepositStrategyIx(
 );
 ```
 
-## API Reference
-
-### VoltrClient
-
-The main client class for interacting with the Voltr protocol.
-
-#### Constructor
+### Position and Value Tracking
 
 ```typescript
-constructor(conn: Connection, wallet?: Keypair)
+// Get position and total values for a vault
+const values = await client.getPositionAndTotalValuesForVault(vaultPubkey);
+console.log(`Total Value: ${values.totalValue}`);
+console.log("Strategy Positions:", values.strategies);
 ```
 
-#### Vault Management Methods
+## API Reference
 
-- `createInitializeVaultIx(vaultParams: VaultParams, params: InitializeParams)`
-- `createDepositIx(amount: BN, params: DepositParams)`
-- `createWithdrawIx(amount: BN, params: WithdrawParams)`
+### VoltrClient Methods
 
-#### Strategy Management Methods
+#### Vault Management
 
-- `createAddAdaptorIx(params: AddAdaptorParams)`
-- `createInitializeStrategyIx(initArgs: InitializeStrategyArgs, params: InitStrategyParams)`
-- `createDepositStrategyIx(depositArgs: depositStrategyArgs, params: DepositStrategyParams)`
-- `createWithdrawStrategyIx(withdrawArgs: withdrawStrategyArgs, params: WithdrawStrategyParams)`
-- `createRemoveStrategyIx(params: RemoveStrategyParams)`
+- `createInitializeVaultIx(vaultParams, params)`
+- `createDepositIx(amount, params)`
+- `createWithdrawIx(amount, params)`
 
-#### Account Fetching Methods
+#### Strategy Management
 
-- `fetchVaultAccount(vault: PublicKey)`
+- `createAddAdaptorIx(params)`
+- `createInitializeStrategyIx(initArgs, params)`
+- `createDepositStrategyIx(depositArgs, params)`
+- `createWithdrawStrategyIx(withdrawArgs, params)`
+- `createInitializeDirectWithdrawStrategyIx(initArgs, params)`
+- `createDirectWithdrawStrategyIx(withdrawArgs, params)`
+- `createRemoveAdaptorIx(params)`
+
+#### Account Data
+
+- `fetchVaultAccount(vault)`
 - `fetchAllStrategyInitReceiptAccounts()`
-- `fetchAllStrategyInitReceiptAccountsOfVault(vault: PublicKey)`
-- `fetchAllAdaptorAddReceiptAccountsOfVault(vault: PublicKey)`
-- `getPositionAndTotalValuesForVault(vault: PublicKey)`
+- `fetchAllStrategyInitReceiptAccountsOfVault(vault)`
+- `fetchAllAdaptorAddReceiptAccountsOfVault(vault)`
+- `getPositionAndTotalValuesForVault(vault)`
 
-#### PDA Finding Methods
+#### PDA Finding
 
-- `findVaultLpMint(vault: PublicKey)`
-- `findVaultAssetIdleAuth(vault: PublicKey)`
-- `findVaultLpFeeAuth(vault: PublicKey)`
-- `findVaultAddresses(vault: PublicKey)`
-- `findVaultStrategyAuth(vault: PublicKey, strategy: PublicKey)`
-- `findStrategyInitReceipt(vault: PublicKey, strategy: PublicKey)`
+- `findVaultLpMint(vault)`
+- `findVaultAssetIdleAuth(vault)`
+- `findVaultAddresses(vault)`
+- `findVaultStrategyAuth(vault, strategy)`
+- `findStrategyInitReceipt(vault, strategy)`
+- `findDirectWithdrawInitReceipt(vault, strategy)`
 
-#### Calculation Methods
+#### Calculations
 
-- `calculateAssetsForWithdraw(vaultPk: PublicKey, lpAmount: BN)`
-- `calculateLpTokensForDeposit(depositAmount: BN, vaultPk: PublicKey)`
+- `calculateAssetsForWithdraw(vaultPk, lpAmount)`
+- `calculateLpTokensForDeposit(depositAmount, vaultPk)`
 
 ## License
 
