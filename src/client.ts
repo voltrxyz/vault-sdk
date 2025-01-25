@@ -25,6 +25,7 @@ import {
 } from "./constants";
 import {
   VaultParams,
+  VaultConfig,
   VoltrVault,
   InitializeStrategyArgs,
   DepositStrategyArgs,
@@ -342,7 +343,11 @@ export class VoltrClient extends AccountUtils {
     );
 
     return await this.vaultProgram.methods
-      .initialize(vaultParams.config, vaultParams.name, vaultParams.description)
+      .initializeVault(
+        vaultParams.config,
+        vaultParams.name,
+        vaultParams.description
+      )
       .accounts({
         payer,
         admin,
@@ -356,7 +361,55 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
-   * Creates a deposit instruction
+   * Creates an instruction to update a vault
+   * @param {VaultConfig} vaultConfig - Configuration parameters for the vault
+   * @param {BN} vaultConfig.maxCap - Maximum capacity of the vault
+   * @param {BN} vaultConfig.startAtTs - Vault start timestamp in seconds
+   * @param {number} vaultConfig.managerManagementFee - Manager's management fee in basis points (e.g., 50 = 0.5%)
+   * @param {number} vaultConfig.managerPerformanceFee - Manager's performance fee in basis points (e.g., 1000 = 10%)
+   * @param {number} vaultConfig.adminManagementFee - Admin's management fee in basis points (e.g., 50 = 0.5%)
+   * @param {number} vaultConfig.adminPerformanceFee - Admin's performance fee in basis points (e.g., 1000 = 10%)
+   * @param {Object} params - Parameters for updating the vault
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.admin - Public key of the vault admin
+   * @returns Transaction instruction for updating the vault
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createUpdateVaultIx(
+   *   {
+   *     maxCap: new BN('1000000000'),
+   *     startAtTs: new BN(Math.floor(Date.now() / 1000)),
+   *     managerManagementFee: 50,
+   *     managerPerformanceFee: 1000,
+   *     adminManagementFee: 50,
+   *     adminPerformanceFee: 1000,
+   *   },
+   *   { vault: vaultPubkey, admin: adminPubkey }
+   * );
+   * ```
+   */
+  async createUpdateVaultIx(
+    vaultConfig: VaultConfig,
+    {
+      vault,
+      admin,
+    }: {
+      vault: PublicKey;
+      admin: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .updateVault(vaultConfig)
+      .accountsPartial({
+        admin,
+        vault,
+      })
+      .instruction();
+  }
+
+  /**
+   * Creates a deposit instruction for a vault
    *
    * @param {BN} amount - Amount of tokens to deposit
    * @param {Object} params - Deposit parameters
@@ -369,7 +422,7 @@ export class VoltrClient extends AccountUtils {
    *
    * @example
    * ```typescript
-   * const ix = await client.createDepositIx(
+   * const ix = await client.createDepositVaultIx(
    *   new BN('1000000000'),
    *   {
    *     userAuthority: userPubkey,
@@ -380,7 +433,7 @@ export class VoltrClient extends AccountUtils {
    * );
    * ```
    */
-  async createDepositIx(
+  async createDepositVaultIx(
     amount: BN,
     {
       userAuthority,
@@ -395,7 +448,7 @@ export class VoltrClient extends AccountUtils {
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .deposit(amount)
+      .depositVault(amount)
       .accounts({
         userTransferAuthority: userAuthority,
         vault,
@@ -406,7 +459,7 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
-   * Creates a withdraw instruction
+   * Creates a withdraw instruction for a vault
    *
    * @param amount - Amount of LP tokens to withdraw
    * @param {Object} params - Withdraw parameters
@@ -419,7 +472,7 @@ export class VoltrClient extends AccountUtils {
    * @throws {Error} If the instruction creation fails
    *
    * @example
-   * const ix = await client.createWithdrawIx(
+   * const ix = await client.createWithdrawVaultIx(
    *   new BN('1000000000'),
    *   {
    *     userAuthority: userPubkey,
@@ -429,7 +482,7 @@ export class VoltrClient extends AccountUtils {
    *   }
    * );
    */
-  async createWithdrawIx(
+  async createWithdrawVaultIx(
     amount: BN,
     {
       userAuthority,
@@ -444,7 +497,7 @@ export class VoltrClient extends AccountUtils {
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .withdraw(amount)
+      .withdrawVault(amount)
       .accounts({
         userTransferAuthority: userAuthority,
         vault,
