@@ -1050,7 +1050,7 @@ export class VoltrClient extends AccountUtils {
    * @returns Promise resolving to the vault account data
    */
   async fetchVaultAccount(vault: PublicKey) {
-    return await this.vaultProgram.account.vault.fetch(vault);
+    return await this.vaultProgram.account.vault.fetch(vault, "confirmed");
   }
 
   /**
@@ -1065,7 +1065,8 @@ export class VoltrClient extends AccountUtils {
    */
   async fetchStrategyInitReceiptAccount(strategyInitReceipt: PublicKey) {
     return await this.vaultProgram.account.strategyInitReceipt.fetch(
-      strategyInitReceipt
+      strategyInitReceipt,
+      "confirmed"
     );
   }
 
@@ -1081,7 +1082,8 @@ export class VoltrClient extends AccountUtils {
    */
   async fetchAdaptorAddReceiptAccount(adaptorAddReceipt: PublicKey) {
     return await this.vaultProgram.account.adaptorAddReceipt.fetch(
-      adaptorAddReceipt
+      adaptorAddReceipt,
+      "confirmed"
     );
   }
 
