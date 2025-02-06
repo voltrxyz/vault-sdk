@@ -463,10 +463,6 @@
           "name": "asset_token_program"
         },
         {
-          "name": "lp_token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
           "name": "adaptor_program"
         }
       ],
@@ -2468,10 +2464,6 @@
         },
         {
           "name": "asset_token_program"
-        },
-        {
-          "name": "lp_token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [

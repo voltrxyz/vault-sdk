@@ -469,10 +469,6 @@ export type VoltrVault = {
           "name": "assetTokenProgram"
         },
         {
-          "name": "lpTokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
           "name": "adaptorProgram"
         }
       ],
@@ -2474,10 +2470,6 @@ export type VoltrVault = {
         },
         {
           "name": "assetTokenProgram"
-        },
-        {
-          "name": "lpTokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [
