@@ -1281,6 +1281,14 @@
           "type": "u64"
         },
         {
+          "name": "is_amount_in_lp",
+          "type": "bool"
+        },
+        {
+          "name": "is_withdraw_all",
+          "type": "bool"
+        },
+        {
           "name": "user_args",
           "type": {
             "option": "bytes"
@@ -2797,6 +2805,14 @@
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "amount_in_lp",
+          "type": "bool"
+        },
+        {
+          "name": "withdraw_all",
+          "type": "bool"
         }
       ]
     }

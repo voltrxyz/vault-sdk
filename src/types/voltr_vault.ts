@@ -1287,6 +1287,14 @@ export type VoltrVault = {
           "type": "u64"
         },
         {
+          "name": "isAmountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "isWithdrawAll",
+          "type": "bool"
+        },
+        {
           "name": "userArgs",
           "type": {
             "option": "bytes"
@@ -2803,6 +2811,14 @@ export type VoltrVault = {
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "amountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "withdrawAll",
+          "type": "bool"
         }
       ]
     }

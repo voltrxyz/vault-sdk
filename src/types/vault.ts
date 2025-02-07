@@ -33,7 +33,12 @@ export interface InitializeDirectWithdrawStrategyArgs
   allowUserArgs?: boolean;
 }
 
-export interface DirectWithdrawStrategyArgs {
-  withdrawAmount: BN;
+export interface WithdrawVaultArgs {
+  amount: BN;
+  isAmountInLp: boolean;
+  isWithdrawAll: boolean;
+}
+
+export interface DirectWithdrawStrategyArgs extends WithdrawVaultArgs {
   userArgs?: Buffer | null;
 }

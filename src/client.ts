@@ -32,6 +32,7 @@ import {
   WithdrawStrategyArgs,
   InitializeDirectWithdrawStrategyArgs,
   DirectWithdrawStrategyArgs,
+  WithdrawVaultArgs,
 } from "./types";
 
 // Import IDL files
@@ -461,7 +462,10 @@ export class VoltrClient extends AccountUtils {
   /**
    * Creates a withdraw instruction for a vault
    *
-   * @param amount - Amount of LP tokens to withdraw
+   * @param {WithdrawVaultArgs} obj - Arguments for withdrawing from the vault
+   * @param {BN} obj.amount - Amount of LP tokens to withdraw
+   * @param {boolean} obj.isAmountInLp - Whether the amount is in LP tokens
+   * @param {boolean} obj.isWithdrawAll - Whether to withdraw all assets
    * @param {Object} params - Withdraw parameters
    * @param {PublicKey} params.userAuthority - Public key of the user authority
    * @param {PublicKey} params.vault - Public key of the vault
@@ -473,7 +477,11 @@ export class VoltrClient extends AccountUtils {
    *
    * @example
    * const ix = await client.createWithdrawVaultIx(
-   *   new BN('1000000000'),
+   *   {
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
+   *   },
    *   {
    *     userAuthority: userPubkey,
    *     vault: vaultPubkey,
@@ -483,7 +491,7 @@ export class VoltrClient extends AccountUtils {
    * );
    */
   async createWithdrawVaultIx(
-    amount: BN,
+    { amount, isAmountInLp, isWithdrawAll }: WithdrawVaultArgs,
     {
       userAuthority,
       vault,
@@ -497,7 +505,7 @@ export class VoltrClient extends AccountUtils {
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .withdrawVault(amount)
+      .withdrawVault(amount, isAmountInLp, isWithdrawAll)
       .accounts({
         userTransferAuthority: userAuthority,
         vault,
@@ -896,9 +904,11 @@ export class VoltrClient extends AccountUtils {
 
   /**
    * Creates an instruction to withdraw assets from a direct withdraw strategy
-   * @param {DirectWithdrawStrategyArgs} withdrawArgs - Withdrawal arguments
-   * @param {BN} withdrawArgs.withdrawAmount - Amount of assets to withdraw
-   * @param {Buffer | null} [withdrawArgs.userArgs] - Optional user arguments for the instruction
+   * @param {DirectWithdrawStrategyArgs} directWithdrawArgs - Withdrawal arguments
+   * @param {BN} directWithdrawArgs.amount - Amount of assets to withdraw
+   * @param {boolean} directWithdrawArgs.isAmountInLp - Whether the amount is in LP tokens
+   * @param {boolean} directWithdrawArgs.isWithdrawAll - Whether to withdraw all assets
+   * @param {Buffer | null} [directWithdrawArgs.userArgs] - Optional user arguments for the instruction
    * @param {Object} params - Parameters for withdrawing assets from direct withdraw strategy
    * @param {PublicKey} params.user - Public key of the user
    * @param {PublicKey} params.vault - Public key of the vault
@@ -914,7 +924,9 @@ export class VoltrClient extends AccountUtils {
    * ```typescript
    * const ix = await client.createDirectWithdrawStrategyIx(
    *   {
-   *     withdrawAmount: new BN('1000000000'),
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
    *     userArgs: Buffer.from('...')
    *   },
    *   {
@@ -930,7 +942,12 @@ export class VoltrClient extends AccountUtils {
    * ```
    */
   async createDirectWithdrawStrategyIx(
-    { withdrawAmount, userArgs = null }: DirectWithdrawStrategyArgs,
+    {
+      amount,
+      isAmountInLp,
+      isWithdrawAll,
+      userArgs = null,
+    }: DirectWithdrawStrategyArgs,
     {
       user,
       vault,
@@ -954,7 +971,7 @@ export class VoltrClient extends AccountUtils {
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .directWithdrawStrategy(withdrawAmount, userArgs)
+      .directWithdrawStrategy(amount, isAmountInLp, isWithdrawAll, userArgs)
       .accounts({
         userTransferAuthority: user,
         strategy,
