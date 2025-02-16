@@ -19,7 +19,7 @@ import {
 } from "@solana/spl-token";
 
 import {
-  DEFAULT_ADAPTOR_PROGRAM_ID,
+  LENDING_ADAPTOR_PROGRAM_ID,
   REDEMPTION_FEE_PERCENTAGE_BPS,
   SEEDS,
 } from "./constants";
@@ -542,7 +542,7 @@ export class VoltrClient extends AccountUtils {
     vault,
     payer,
     admin,
-    adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+    adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
   }: {
     vault: PublicKey;
     payer: PublicKey;
@@ -603,7 +603,7 @@ export class VoltrClient extends AccountUtils {
       vault,
       manager,
       strategy,
-      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
       payer: PublicKey;
@@ -684,7 +684,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint,
       strategy,
       assetTokenProgram,
-      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
       manager: PublicKey;
@@ -762,7 +762,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint,
       strategy,
       assetTokenProgram,
-      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
       manager: PublicKey;
@@ -817,7 +817,7 @@ export class VoltrClient extends AccountUtils {
   async createRemoveAdaptorIx({
     vault,
     admin,
-    adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+    adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
   }: {
     vault: PublicKey;
     admin: PublicKey;
@@ -877,7 +877,7 @@ export class VoltrClient extends AccountUtils {
       admin,
       vault,
       strategy,
-      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
     }: {
       payer: PublicKey;
       admin: PublicKey;
@@ -954,7 +954,7 @@ export class VoltrClient extends AccountUtils {
       strategy,
       vaultAssetMint,
       assetTokenProgram,
-      adaptorProgram = DEFAULT_ADAPTOR_PROGRAM_ID,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
       remainingAccounts,
     }: {
       user: PublicKey;

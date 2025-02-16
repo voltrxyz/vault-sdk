@@ -3,6 +3,7 @@ import { BN } from "@coral-xyz/anchor";
 export interface VaultConfig {
   maxCap: BN;
   startAtTs: BN;
+  lockedProfitDegradationDuration: BN;
   managerManagementFee: number;
   managerPerformanceFee: number;
   adminManagementFee: number;

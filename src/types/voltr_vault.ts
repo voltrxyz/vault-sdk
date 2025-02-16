@@ -2960,6 +2960,11 @@ export type VoltrVault = {
       "code": 6013,
       "name": "adaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
+    },
+    {
+      "code": 6014,
+      "name": "invalidFeeConfiguration",
+      "msg": "Fee configuration invalid."
     }
   ],
   "types": [
@@ -3194,9 +3199,67 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                56
+                24
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "highWaterMark",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "highestAssetPerLp",
+            "docs": [
+              "The highest recorded total asset value per share"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "lastUpdatedTs",
+            "docs": [
+              "The timestamp when the high water mark was last updated"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "Reserved for future use"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "lockedProfitState",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastUpdatedLockedProfit",
+            "type": "u64"
+          },
+          {
+            "name": "lastReport",
+            "type": "u64"
           }
         ]
       }
@@ -3429,7 +3492,7 @@ export type VoltrVault = {
           {
             "name": "vaultConfiguration",
             "docs": [
-              "The vault fee and cap configuration (inline nested struct)."
+              "The vault fee, cap, and locked profit degradation duration configuration (inline nested struct)."
             ],
             "type": {
               "defined": {
@@ -3460,6 +3523,14 @@ export type VoltrVault = {
             }
           },
           {
+            "name": "highWaterMark",
+            "type": {
+              "defined": {
+                "name": "highWaterMark"
+              }
+            }
+          },
+          {
             "name": "lastUpdatedTs",
             "docs": [
               "The last time (Unix timestamp) this vault data was updated."
@@ -3486,6 +3557,17 @@ export type VoltrVault = {
             }
           },
           {
+            "name": "lockedProfitState",
+            "docs": [
+              "The locked profit state of the vault."
+            ],
+            "type": {
+              "defined": {
+                "name": "lockedProfitState"
+              }
+            }
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3493,7 +3575,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                256
+                240
               ]
             }
           }
@@ -3576,6 +3658,13 @@ export type VoltrVault = {
             "type": "u64"
           },
           {
+            "name": "lockedProfitDegradationDuration",
+            "docs": [
+              "The locked profit degradation duration."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3583,7 +3672,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                64
+                56
               ]
             }
           }
@@ -3636,6 +3725,13 @@ export type VoltrVault = {
               "Admin management fee in basis points (BPS)."
             ],
             "type": "u16"
+          },
+          {
+            "name": "lockedProfitDegradationDuration",
+            "docs": [
+              "The locked profit degradation duration."
+            ],
+            "type": "u64"
           }
         ]
       }

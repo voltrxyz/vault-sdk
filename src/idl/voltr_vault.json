@@ -2954,6 +2954,11 @@
       "code": 6013,
       "name": "AdaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidFeeConfiguration",
+      "msg": "Fee configuration invalid."
     }
   ],
   "types": [
@@ -3188,9 +3193,67 @@
             "type": {
               "array": [
                 "u8",
-                56
+                24
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "HighWaterMark",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "highest_asset_per_lp",
+            "docs": [
+              "The highest recorded total asset value per share"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "last_updated_ts",
+            "docs": [
+              "The timestamp when the high water mark was last updated"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "docs": [
+              "Reserved for future use"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LockedProfitState",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "last_updated_locked_profit",
+            "type": "u64"
+          },
+          {
+            "name": "last_report",
+            "type": "u64"
           }
         ]
       }
@@ -3423,7 +3486,7 @@
           {
             "name": "vault_configuration",
             "docs": [
-              "The vault fee and cap configuration (inline nested struct)."
+              "The vault fee, cap, and locked profit degradation duration configuration (inline nested struct)."
             ],
             "type": {
               "defined": {
@@ -3454,6 +3517,14 @@
             }
           },
           {
+            "name": "high_water_mark",
+            "type": {
+              "defined": {
+                "name": "HighWaterMark"
+              }
+            }
+          },
+          {
             "name": "last_updated_ts",
             "docs": [
               "The last time (Unix timestamp) this vault data was updated."
@@ -3480,6 +3551,17 @@
             }
           },
           {
+            "name": "locked_profit_state",
+            "docs": [
+              "The locked profit state of the vault."
+            ],
+            "type": {
+              "defined": {
+                "name": "LockedProfitState"
+              }
+            }
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3487,7 +3569,7 @@
             "type": {
               "array": [
                 "u8",
-                256
+                240
               ]
             }
           }
@@ -3570,6 +3652,13 @@
             "type": "u64"
           },
           {
+            "name": "locked_profit_degradation_duration",
+            "docs": [
+              "The locked profit degradation duration."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3577,7 +3666,7 @@
             "type": {
               "array": [
                 "u8",
-                64
+                56
               ]
             }
           }
@@ -3630,6 +3719,13 @@
               "Admin management fee in basis points (BPS)."
             ],
             "type": "u16"
+          },
+          {
+            "name": "locked_profit_degradation_duration",
+            "docs": [
+              "The locked profit degradation duration."
+            ],
+            "type": "u64"
           }
         ]
       }
