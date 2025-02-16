@@ -280,6 +280,7 @@ export class VoltrClient extends AccountUtils {
    * @param {VaultConfig} vaultParams.config - Vault configuration settings
    * @param {BN} vaultParams.config.maxCap - Maximum capacity of the vault
    * @param {BN} vaultParams.config.startAtTs - Vault start timestamp in seconds
+   * @param {BN} vaultParams.config.lockedProfitDegradationDuration - Locked profit degradation duration in seconds
    * @param {number} vaultParams.config.managerManagementFee - Manager's management fee in basis points (e.g., 50 = 0.5%)
    * @param {number} vaultParams.config.managerPerformanceFee - Manager's performance fee in basis points (e.g., 1000 = 10%)
    * @param {number} vaultParams.config.adminManagementFee - Admin's management fee in basis points (e.g., 50 = 0.5%)
@@ -301,6 +302,7 @@ export class VoltrClient extends AccountUtils {
    *     config: {
    *       maxCap: new BN('1000000000'),
    *       startAtTs: new BN(Math.floor(Date.now() / 1000)),
+   *       lockedProfitDegradationDuration: new BN(3600), // 1 hour
    *       managerManagementFee: 50,  // 0.5%
    *       managerPerformanceFee: 1000,  // 10%
    *       adminManagementFee: 50,  // 0.5%

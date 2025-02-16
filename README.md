@@ -41,6 +41,7 @@ const vaultParams = {
   config: {
     maxCap: new BN("1000000000"),
     startAtTs: new BN(Math.floor(Date.now() / 1000)),
+    lockedProfitDegradationDuration: new BN(3600), // 1 hour
     managerManagementFee: 50, // 0.5%
     managerPerformanceFee: 1000, // 10%
     adminManagementFee: 50, // 0.5%
