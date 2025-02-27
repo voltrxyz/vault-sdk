@@ -3,9 +3,9 @@ import {
   AnchorProvider,
   Idl,
   setProvider,
-  BN,
   Wallet,
 } from "@coral-xyz/anchor";
+import BN from "bn.js";
 import {
   Connection,
   Keypair,
@@ -18,11 +18,7 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 
-import {
-  LENDING_ADAPTOR_PROGRAM_ID,
-  REDEMPTION_FEE_PERCENTAGE_BPS,
-  SEEDS,
-} from "./constants";
+import { LENDING_ADAPTOR_PROGRAM_ID, SEEDS } from "./constants";
 import {
   VaultParams,
   VaultConfig,
@@ -31,8 +27,7 @@ import {
   DepositStrategyArgs,
   WithdrawStrategyArgs,
   InitializeDirectWithdrawStrategyArgs,
-  DirectWithdrawStrategyArgs,
-  WithdrawVaultArgs,
+  RequestWithdrawVaultArgs,
 } from "./types";
 
 // Import IDL files
@@ -272,6 +267,26 @@ export class VoltrClient extends AccountUtils {
     };
   }
 
+  /**
+   * Finds the request withdraw vault receipt address
+   * @param vault - Public key of the vault
+   * @param user - Public key of the user
+   * @returns The PDA for the request withdraw vault receipt
+   *
+   * @example
+   * ```typescript
+   * const requestWithdrawVaultReceipt = client.findRequestWithdrawVaultReceipt(vaultPubkey, userPubkey);
+   * ```
+   */
+  findRequestWithdrawVaultReceipt(vault: PublicKey, user: PublicKey) {
+    const [requestWithdrawVaultReceipt] = PublicKey.findProgramAddressSync(
+      [SEEDS.REQUEST_WITHDRAW_VAULT_RECEIPT, vault.toBuffer(), user.toBuffer()],
+      this.vaultProgram.programId
+    );
+
+    return requestWithdrawVaultReceipt;
+  }
+
   // --------------------------------------- Vault Instructions
   /**
    * Creates an instruction to initialize a new vault
@@ -285,6 +300,9 @@ export class VoltrClient extends AccountUtils {
    * @param {number} vaultParams.config.managerPerformanceFee - Manager's performance fee in basis points (e.g., 1000 = 10%)
    * @param {number} vaultParams.config.adminManagementFee - Admin's management fee in basis points (e.g., 50 = 0.5%)
    * @param {number} vaultParams.config.adminPerformanceFee - Admin's performance fee in basis points (e.g., 1000 = 10%)
+   * @param {number} vaultParams.config.redemptionFee - Redemption fee in basis points (e.g., 10 = 0.1%)
+   * @param {number} vaultParams.config.issuanceFee - Issuance fee in basis points (e.g., 10 = 0.1%)
+   * @param {BN} vaultParams.config.withdrawalWaitingPeriod - Withdrawal waiting period in seconds
    * @param {string} vaultParams.name - Name of the vault
    * @param {string} vaultParams.description - Description of the vault
    * @param {Object} params - Additional parameters for initializing the vault
@@ -303,6 +321,9 @@ export class VoltrClient extends AccountUtils {
    *       maxCap: new BN('1000000000'),
    *       startAtTs: new BN(Math.floor(Date.now() / 1000)),
    *       lockedProfitDegradationDuration: new BN(3600), // 1 hour
+   *       redemptionFee: 10,
+   *       issuanceFee: 10,
+   *       withdrawalWaitingPeriod: new BN(3600), // 1 hour
    *       managerManagementFee: 50,  // 0.5%
    *       managerPerformanceFee: 1000,  // 10%
    *       adminManagementFee: 50,  // 0.5%
@@ -462,12 +483,93 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Creates a request withdraw instruction for a vault
+   *
+   * @param {RequestWithdrawVaultArgs} requestWithdrawArgs - Arguments for withdrawing from the vault
+   * @param {BN} requestWithdrawArgs.amount - Amount of LP tokens to withdraw
+   * @param {boolean} requestWithdrawArgs.isAmountInLp - Whether the amount is in LP tokens
+   * @param {boolean} requestWithdrawArgs.isWithdrawAll - Whether to withdraw all assets
+   * @param {Object} params - Request withdraw parameters
+   * @param {PublicKey} params.payer - Public key of the payer
+   * @param {PublicKey} params.userAuthority - Public key of the user authority
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawal
+   *
+   * @throws {Error} If the instruction creation fails
+   *
+   * @example
+   * const ix = await client.createRequestWithdrawVaultIx(
+   *   {
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
+   *   },
+   *   {
+   *     payer: payerPubkey,
+   *     userAuthority: userPubkey,
+   *     vault: vaultPubkey,
+   *   }
+   * );
+   */
+  async createRequestWithdrawVaultIx(
+    { amount, isAmountInLp, isWithdrawAll }: RequestWithdrawVaultArgs,
+    {
+      payer,
+      userAuthority,
+      vault,
+    }: {
+      payer: PublicKey;
+      userAuthority: PublicKey;
+      vault: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .requestWithdrawVault(amount, isAmountInLp, isWithdrawAll)
+      .accounts({
+        payer,
+        userTransferAuthority: userAuthority,
+        vault,
+      })
+      .instruction();
+  }
+
+  /**
+   * Creates a cancel withdraw instruction for a vault
+   *
+   * @param {Object} params - Cancel withdraw request parameters
+   * @param {PublicKey} params.userAuthority - Public key of the user authority
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawal
+   *
+   * @throws {Error} If the instruction creation fails
+   *
+   * @example
+   * const ix = await client.createCancelRequestWithdrawVaultIx(
+   *   {
+   *     userAuthority: userPubkey,
+   *     vault: vaultPubkey,
+   *   }
+   * );
+   */
+  async createCancelRequestWithdrawVaultIx({
+    userAuthority,
+    vault,
+  }: {
+    userAuthority: PublicKey;
+    vault: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .cancelRequestWithdrawVault()
+      .accounts({
+        userTransferAuthority: userAuthority,
+        vault,
+      })
+      .instruction();
+  }
+
+  /**
    * Creates a withdraw instruction for a vault
    *
-   * @param {WithdrawVaultArgs} obj - Arguments for withdrawing from the vault
-   * @param {BN} obj.amount - Amount of LP tokens to withdraw
-   * @param {boolean} obj.isAmountInLp - Whether the amount is in LP tokens
-   * @param {boolean} obj.isWithdrawAll - Whether to withdraw all assets
    * @param {Object} params - Withdraw parameters
    * @param {PublicKey} params.userAuthority - Public key of the user authority
    * @param {PublicKey} params.vault - Public key of the vault
@@ -480,11 +582,6 @@ export class VoltrClient extends AccountUtils {
    * @example
    * const ix = await client.createWithdrawVaultIx(
    *   {
-   *     amount: new BN('1000000000'),
-   *     isAmountInLp: true,
-   *     isWithdrawAll: false,
-   *   },
-   *   {
    *     userAuthority: userPubkey,
    *     vault: vaultPubkey,
    *     vaultAssetMint: mintPubkey,
@@ -492,22 +589,19 @@ export class VoltrClient extends AccountUtils {
    *   }
    * );
    */
-  async createWithdrawVaultIx(
-    { amount, isAmountInLp, isWithdrawAll }: WithdrawVaultArgs,
-    {
-      userAuthority,
-      vault,
-      vaultAssetMint,
-      assetTokenProgram,
-    }: {
-      userAuthority: PublicKey;
-      vault: PublicKey;
-      vaultAssetMint: PublicKey;
-      assetTokenProgram: PublicKey;
-    }
-  ): Promise<TransactionInstruction> {
+  async createWithdrawVaultIx({
+    userAuthority,
+    vault,
+    vaultAssetMint,
+    assetTokenProgram,
+  }: {
+    userAuthority: PublicKey;
+    vault: PublicKey;
+    vaultAssetMint: PublicKey;
+    assetTokenProgram: PublicKey;
+  }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .withdrawVault(amount, isAmountInLp, isWithdrawAll)
+      .withdrawVault()
       .accounts({
         userTransferAuthority: userAuthority,
         vault,
@@ -906,10 +1000,7 @@ export class VoltrClient extends AccountUtils {
 
   /**
    * Creates an instruction to withdraw assets from a direct withdraw strategy
-   * @param {DirectWithdrawStrategyArgs} directWithdrawArgs - Withdrawal arguments
-   * @param {BN} directWithdrawArgs.amount - Amount of assets to withdraw
-   * @param {boolean} directWithdrawArgs.isAmountInLp - Whether the amount is in LP tokens
-   * @param {boolean} directWithdrawArgs.isWithdrawAll - Whether to withdraw all assets
+   * @param {Object} directWithdrawArgs - Withdrawal arguments
    * @param {Buffer | null} [directWithdrawArgs.userArgs] - Optional user arguments for the instruction
    * @param {Object} params - Parameters for withdrawing assets from direct withdraw strategy
    * @param {PublicKey} params.user - Public key of the user
@@ -926,9 +1017,6 @@ export class VoltrClient extends AccountUtils {
    * ```typescript
    * const ix = await client.createDirectWithdrawStrategyIx(
    *   {
-   *     amount: new BN('1000000000'),
-   *     isAmountInLp: true,
-   *     isWithdrawAll: false,
    *     userArgs: Buffer.from('...')
    *   },
    *   {
@@ -944,12 +1032,7 @@ export class VoltrClient extends AccountUtils {
    * ```
    */
   async createDirectWithdrawStrategyIx(
-    {
-      amount,
-      isAmountInLp,
-      isWithdrawAll,
-      userArgs = null,
-    }: DirectWithdrawStrategyArgs,
+    { userArgs = null }: { userArgs?: Buffer | null },
     {
       user,
       vault,
@@ -973,7 +1056,7 @@ export class VoltrClient extends AccountUtils {
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
-      .directWithdrawStrategy(amount, isAmountInLp, isWithdrawAll, userArgs)
+      .directWithdrawStrategy(userArgs)
       .accounts({
         userTransferAuthority: user,
         strategy,
@@ -1108,6 +1191,22 @@ export class VoltrClient extends AccountUtils {
 
   // --------------------------------------- Helpers
 
+  calculateLockedProfit(
+    lastUpdatedLockedProfit: BN,
+    lockedProfitDegradationDuration: BN,
+    currentTime: BN
+  ): BN {
+    if (lockedProfitDegradationDuration.eq(new BN(0))) return new BN(0);
+
+    const duration = currentTime.sub(lastUpdatedLockedProfit);
+    const lockedProfit = lastUpdatedLockedProfit
+      .mul(lockedProfitDegradationDuration.sub(duration))
+      .div(lockedProfitDegradationDuration);
+
+    if (duration.gt(lockedProfitDegradationDuration)) return new BN(0);
+    else return lockedProfit;
+  }
+
   /**
    * Calculates the amount of assets that would be received for a given LP token amount
    *
@@ -1130,35 +1229,112 @@ export class VoltrClient extends AccountUtils {
     vaultPk: PublicKey,
     lpAmount: BN
   ): Promise<BN> {
-    const vault = await this.fetchVaultAccount(vaultPk);
-    const totalValue = vault.asset.totalValue;
-
-    const lpMint = this.findVaultLpMint(vaultPk);
-    const lp = await getMint(this.conn, lpMint);
-    const lpSupply = new BN(lp.supply.toString());
-
-    // Validate inputs
-    if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
-    if (totalValue <= new BN(0)) throw new Error("Invalid total assets");
-
-    const amountPreRedemption = lpAmount.mul(totalValue).div(lpSupply);
-    const amount = amountPreRedemption
-      .mul(new BN(10000 - REDEMPTION_FEE_PERCENTAGE_BPS))
-      .div(new BN(10000));
-
-    // Calculate: (lpAmount * totalValue) / totalLpSupply
     try {
+      const vault = await this.fetchVaultAccount(vaultPk);
+      const totalValue = vault.asset.totalValue;
+      const lockedProfit = this.calculateLockedProfit(
+        vault.lockedProfitState.lastUpdatedLockedProfit,
+        vault.vaultConfiguration.lockedProfitDegradationDuration,
+        new BN(Date.now() / 1000)
+      );
+      const totalUnlockedValue = totalValue.sub(lockedProfit);
+
+      const lpMint = this.findVaultLpMint(vaultPk);
+      const lp = await getMint(this.conn, lpMint);
+      const lpSupply = new BN(lp.supply.toString());
+
+      // Validate inputs
+      if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
+      if (totalValue <= new BN(0)) throw new Error("Invalid total assets");
+
+      const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
+        .add(vault.feeState.accumulatedLpManagerFees)
+        .add(vault.feeState.accumulatedLpProtocolFees);
+      const lpSupplyInclFees = lpSupply.add(unharvestedFeesLp);
+
+      // asset_to_redeem_pre_fee = amount * (total_asset_pre_withdraw / total_lp_supply_pre_withdraw)
+      // asset_to_redeem_post_fee = asset_to_redeem_pre_fee * (10000 - redemption_fee_bps) / 10000
+      const assetToRedeemNumerator = lpAmount
+        .mul(totalUnlockedValue)
+        .mul(new BN(10000 - vault.feeConfiguration.redemptionFee));
+
+      const assetToRedeemDenominator = lpSupplyInclFees.mul(new BN(10000));
+
+      const amount = assetToRedeemNumerator.div(assetToRedeemDenominator);
+
       return amount;
     } catch (e) {
-      throw new Error("Math overflow in asset calculation");
+      throw new Error("Math overflow in asset calculation for withdraw");
+    }
+  }
+
+  /**
+   * Calculates the amount of LP tokens that would be burned for a given asset amount
+   *
+   * @param vaultPk - Public key of the vault
+   * @param assetAmount - Amount of assets to calculate for
+   * @returns Promise resolving to the amount of LP tokens that would be burned
+   *
+   * @throws {Error} If LP supply or total assets are invalid
+   * @throws {Error} If math overflow occurs during calculation
+   *
+   * @example
+   * ```typescript
+   * const lpTokensToBurn = await client.calculateLpForWithdraw(
+   *   vaultPubkey,
+   *   new BN('1000000000')
+   * );
+   * ```
+   */
+  async calculateLpForWithdraw(
+    vaultPk: PublicKey,
+    assetAmount: BN
+  ): Promise<BN> {
+    try {
+      const vault = await this.fetchVaultAccount(vaultPk);
+      const totalValue = vault.asset.totalValue;
+      const lockedProfit = this.calculateLockedProfit(
+        vault.lockedProfitState.lastUpdatedLockedProfit,
+        vault.vaultConfiguration.lockedProfitDegradationDuration,
+        new BN(Date.now() / 1000)
+      );
+      const totalUnlockedValue = totalValue.sub(lockedProfit);
+
+      const lpMint = this.findVaultLpMint(vaultPk);
+      const lp = await getMint(this.conn, lpMint);
+      const lpSupply = new BN(lp.supply.toString());
+
+      // Validate inputs
+      if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
+      if (totalValue <= new BN(0)) throw new Error("Invalid total assets");
+
+      const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
+        .add(vault.feeState.accumulatedLpManagerFees)
+        .add(vault.feeState.accumulatedLpProtocolFees);
+      const lpSupplyInclFees = lpSupply.add(unharvestedFeesLp);
+
+      // lp_to_burn_pre_fee = redeem_amount * (total_lp_supply_pre_withdraw / total_asset_pre_withdraw)
+      // lp_to_burn_post_fee = lp_to_burn_pre_fee  * (10000 / (10000 - redemption_fee_bps))
+      const lpToBurnNumerator = assetAmount
+        .mul(lpSupplyInclFees)
+        .mul(new BN(10000));
+      const lpToBurnDenominator = totalUnlockedValue.mul(
+        new BN(10000 - vault.feeConfiguration.redemptionFee)
+      );
+
+      const lpToBurn = lpToBurnNumerator.div(lpToBurnDenominator);
+
+      return lpToBurn;
+    } catch (e) {
+      throw new Error("Math overflow in LP token calculation for withdraw");
     }
   }
 
   /**
    * Calculates the amount of LP tokens that would be received for a given asset deposit
    *
-   * @param depositAmount - Amount of assets to deposit
    * @param vaultPk - Public key of the vault
+   * @param assetAmount - Amount of assets to deposit
    * @returns Promise resolving to the amount of LP tokens that would be received
    *
    * @throws {Error} If math overflow occurs during calculation
@@ -1166,14 +1342,14 @@ export class VoltrClient extends AccountUtils {
    * @example
    * ```typescript
    * const lpTokens = await client.calculateLpTokensForDeposit(
-   *   new BN('1000000000'),
    *   vaultPubkey
+   *   new BN('1000000000'),
    * );
    * ```
    */
-  async calculateLpTokensForDeposit(
-    depositAmount: BN,
-    vaultPk: PublicKey
+  async calculateLpForDeposit(
+    vaultPk: PublicKey,
+    assetAmount: BN
   ): Promise<BN> {
     const vault = await this.fetchVaultAccount(vaultPk);
     const totalValue = vault.asset.totalValue;
@@ -1181,21 +1357,38 @@ export class VoltrClient extends AccountUtils {
     const lp = await getMint(this.conn, lpMint);
     const lpSupply = new BN(lp.supply.toString());
 
+    const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
+      .add(vault.feeState.accumulatedLpManagerFees)
+      .add(vault.feeState.accumulatedLpProtocolFees);
+    const lpSupplyInclFees = lpSupply.add(unharvestedFeesLp);
+
     // If the pool is empty, mint LP tokens 1:1 with deposit
-    if (totalValue <= new BN(0) && lpSupply <= new BN(0)) {
+    if (lpSupplyInclFees.eq(new BN(0))) {
       const assetMint = await getMint(this.conn, vault.asset.mint);
       const assetDecimals = assetMint.decimals;
       const lpDecimals = lp.decimals;
-      return depositAmount
+      return assetAmount
         .mul(new BN(10 ** lpDecimals))
         .div(new BN(10 ** assetDecimals));
     }
 
-    // Calculate: (depositAmount * totalLpSupply) / totalValue
     try {
-      return depositAmount.mul(lpSupply).div(totalValue);
+      const lpToMintNumerator = assetAmount
+        .mul(lpSupplyInclFees)
+        .mul(new BN(10000 - vault.feeConfiguration.issuanceFee));
+
+      const totalAssetPostDeposit = totalValue.add(assetAmount);
+      const lpToMintDenominator = totalAssetPostDeposit
+        .mul(new BN(10000))
+        .sub(
+          assetAmount.mul(new BN(10000 - vault.feeConfiguration.issuanceFee))
+        );
+
+      const lpToMint = lpToMintNumerator.div(lpToMintDenominator);
+
+      return lpToMint;
     } catch (e) {
-      throw new Error("Math overflow in LP token calculation");
+      throw new Error("Math overflow in LP token calculation for deposit");
     }
   }
 }

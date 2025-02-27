@@ -8,6 +8,9 @@ export interface VaultConfig {
   managerPerformanceFee: number;
   adminManagementFee: number;
   adminPerformanceFee: number;
+  redemptionFee: number;
+  issuanceFee: number;
+  withdrawalWaitingPeriod: BN;
 }
 
 export interface VaultParams {
@@ -34,12 +37,8 @@ export interface InitializeDirectWithdrawStrategyArgs
   allowUserArgs?: boolean;
 }
 
-export interface WithdrawVaultArgs {
+export interface RequestWithdrawVaultArgs {
   amount: BN;
   isAmountInLp: boolean;
   isWithdrawAll: boolean;
-}
-
-export interface DirectWithdrawStrategyArgs extends WithdrawVaultArgs {
-  userArgs?: Buffer | null;
 }

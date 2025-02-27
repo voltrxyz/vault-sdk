@@ -113,6 +113,263 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "cancelRequestWithdrawVault",
+      "discriminator": [
+        231,
+        54,
+        14,
+        6,
+        223,
+        124,
+        127,
+        238
+      ],
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userLpAta",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "requestWithdrawLpAta",
+          "docs": [
+            "The request's associated token account for LP."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "requestWithdrawVaultReceipt"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "requestWithdrawVaultReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "depositStrategy",
       "discriminator": [
         246,
@@ -1050,16 +1307,16 @@ export type VoltrVault = {
           }
         },
         {
-          "name": "userLpAta",
+          "name": "requestWithdrawLpAta",
           "docs": [
-            "The user's LP token account from which LP tokens will be burned."
+            "The request's LP token account from which LP tokens will be burned."
           ],
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "userTransferAuthority"
+                "path": "requestWithdrawVaultReceipt"
               },
               {
                 "kind": "account",
@@ -1267,6 +1524,57 @@ export type VoltrVault = {
           }
         },
         {
+          "name": "requestWithdrawVaultReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              }
+            ]
+          }
+        },
+        {
           "name": "adaptorProgram"
         },
         {
@@ -1282,18 +1590,6 @@ export type VoltrVault = {
         }
       ],
       "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "isAmountInLp",
-          "type": "bool"
-        },
-        {
-          "name": "isWithdrawAll",
-          "type": "bool"
-        },
         {
           "name": "userArgs",
           "type": {
@@ -2061,6 +2357,281 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "requestWithdrawVault",
+      "discriminator": [
+        248,
+        225,
+        47,
+        22,
+        116,
+        144,
+        23,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "The payer of the request"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "vaultLpMint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userLpAta",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "requestWithdrawLpAta",
+          "docs": [
+            "The request's associated token account for LP."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "requestWithdrawVaultReceipt"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "requestWithdrawVaultReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "isAmountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "isWithdrawAll",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "updateVault",
       "discriminator": [
         67,
@@ -2578,16 +3149,16 @@ export type VoltrVault = {
           }
         },
         {
-          "name": "userLpAta",
+          "name": "requestWithdrawLpAta",
           "docs": [
-            "The user's LP token account from which LP tokens will be burned."
+            "The request's LP token account from which LP tokens will be burned."
           ],
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "userTransferAuthority"
+                "path": "requestWithdrawVaultReceipt"
               },
               {
                 "kind": "account",
@@ -2796,6 +3367,57 @@ export type VoltrVault = {
           }
         },
         {
+          "name": "requestWithdrawVaultReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              }
+            ]
+          }
+        },
+        {
           "name": "assetTokenProgram"
         },
         {
@@ -2807,20 +3429,7 @@ export type VoltrVault = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "amountInLp",
-          "type": "bool"
-        },
-        {
-          "name": "withdrawAll",
-          "type": "bool"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
@@ -2861,6 +3470,19 @@ export type VoltrVault = {
         72,
         131,
         40
+      ]
+    },
+    {
+      "name": "requestWithdrawVaultReceipt",
+      "discriminator": [
+        203,
+        81,
+        223,
+        141,
+        175,
+        108,
+        101,
+        114
       ]
     },
     {
@@ -2965,6 +3587,11 @@ export type VoltrVault = {
       "code": 6014,
       "name": "invalidFeeConfiguration",
       "msg": "Fee configuration invalid."
+    },
+    {
+      "code": 6015,
+      "name": "withdrawalNotYetAvailable",
+      "msg": "Withdrawal not yet available."
     }
   ],
   "types": [
@@ -3147,6 +3774,20 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
+            "name": "redemptionFee",
+            "docs": [
+              "The redemption fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "issuanceFee",
+            "docs": [
+              "The issuance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3154,7 +3795,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                56
+                52
               ]
             }
           }
@@ -3216,7 +3857,7 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
-            "name": "highestAssetPerLp",
+            "name": "highestAssetPerLpDecimalBits",
             "docs": [
               "The highest recorded total asset value per share"
             ],
@@ -3324,6 +3965,46 @@ export type VoltrVault = {
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "requestWithdrawVaultReceipt",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "amountLpEscrowed",
+            "type": "u64"
+          },
+          {
+            "name": "amountAssetToWithdrawDecimalBits",
+            "type": "u128"
+          },
+          {
+            "name": "withdrawableFromTs",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
           }
         ]
       }
@@ -3665,6 +4346,13 @@ export type VoltrVault = {
             "type": "u64"
           },
           {
+            "name": "withdrawalWaitingPeriod",
+            "docs": [
+              "The waiting period for a withdrawal. prec: seconds"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3672,7 +4360,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                56
+                48
               ]
             }
           }
@@ -3730,6 +4418,27 @@ export type VoltrVault = {
             "name": "lockedProfitDegradationDuration",
             "docs": [
               "The locked profit degradation duration."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "redemptionFee",
+            "docs": [
+              "The redemption fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "issuanceFee",
+            "docs": [
+              "The issuance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "withdrawalWaitingPeriod",
+            "docs": [
+              "The waiting period for a withdrawal."
             ],
             "type": "u64"
           }

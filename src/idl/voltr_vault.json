@@ -107,6 +107,263 @@
       "args": []
     },
     {
+      "name": "cancel_request_withdraw_vault",
+      "discriminator": [
+        231,
+        54,
+        14,
+        6,
+        223,
+        124,
+        127,
+        238
+      ],
+      "accounts": [
+        {
+          "name": "user_transfer_authority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_lp_ata",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "request_withdraw_lp_ata",
+          "docs": [
+            "The request's associated token account for LP."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "request_withdraw_vault_receipt"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "request_withdraw_vault_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "deposit_strategy",
       "discriminator": [
         246,
@@ -1044,16 +1301,16 @@
           }
         },
         {
-          "name": "user_lp_ata",
+          "name": "request_withdraw_lp_ata",
           "docs": [
-            "The user's LP token account from which LP tokens will be burned."
+            "The request's LP token account from which LP tokens will be burned."
           ],
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "user_transfer_authority"
+                "path": "request_withdraw_vault_receipt"
               },
               {
                 "kind": "account",
@@ -1261,6 +1518,57 @@
           }
         },
         {
+          "name": "request_withdraw_vault_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              }
+            ]
+          }
+        },
+        {
           "name": "adaptor_program"
         },
         {
@@ -1276,18 +1584,6 @@
         }
       ],
       "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "is_amount_in_lp",
-          "type": "bool"
-        },
-        {
-          "name": "is_withdraw_all",
-          "type": "bool"
-        },
         {
           "name": "user_args",
           "type": {
@@ -2055,6 +2351,281 @@
       "args": []
     },
     {
+      "name": "request_withdraw_vault",
+      "discriminator": [
+        248,
+        225,
+        47,
+        22,
+        116,
+        144,
+        23,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "The payer of the request"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_transfer_authority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "vault_lp_mint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_lp_ata",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "request_withdraw_lp_ata",
+          "docs": [
+            "The request's associated token account for LP."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "request_withdraw_vault_receipt"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "request_withdraw_vault_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "is_amount_in_lp",
+          "type": "bool"
+        },
+        {
+          "name": "is_withdraw_all",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "update_vault",
       "discriminator": [
         67,
@@ -2572,16 +3143,16 @@
           }
         },
         {
-          "name": "user_lp_ata",
+          "name": "request_withdraw_lp_ata",
           "docs": [
-            "The user's LP token account from which LP tokens will be burned."
+            "The request's LP token account from which LP tokens will be burned."
           ],
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "user_transfer_authority"
+                "path": "request_withdraw_vault_receipt"
               },
               {
                 "kind": "account",
@@ -2790,6 +3361,57 @@
           }
         },
         {
+          "name": "request_withdraw_vault_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              }
+            ]
+          }
+        },
+        {
           "name": "asset_token_program"
         },
         {
@@ -2801,20 +3423,7 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "amount_in_lp",
-          "type": "bool"
-        },
-        {
-          "name": "withdraw_all",
-          "type": "bool"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
@@ -2855,6 +3464,19 @@
         72,
         131,
         40
+      ]
+    },
+    {
+      "name": "RequestWithdrawVaultReceipt",
+      "discriminator": [
+        203,
+        81,
+        223,
+        141,
+        175,
+        108,
+        101,
+        114
       ]
     },
     {
@@ -2959,6 +3581,11 @@
       "code": 6014,
       "name": "InvalidFeeConfiguration",
       "msg": "Fee configuration invalid."
+    },
+    {
+      "code": 6015,
+      "name": "WithdrawalNotYetAvailable",
+      "msg": "Withdrawal not yet available."
     }
   ],
   "types": [
@@ -3141,6 +3768,20 @@
             "type": "u16"
           },
           {
+            "name": "redemption_fee",
+            "docs": [
+              "The redemption fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "issuance_fee",
+            "docs": [
+              "The issuance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3148,7 +3789,7 @@
             "type": {
               "array": [
                 "u8",
-                56
+                52
               ]
             }
           }
@@ -3210,7 +3851,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "highest_asset_per_lp",
+            "name": "highest_asset_per_lp_decimal_bits",
             "docs": [
               "The highest recorded total asset value per share"
             ],
@@ -3318,6 +3959,46 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestWithdrawVaultReceipt",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_lp_escrowed",
+            "type": "u64"
+          },
+          {
+            "name": "amount_asset_to_withdraw_decimal_bits",
+            "type": "u128"
+          },
+          {
+            "name": "withdrawable_from_ts",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
           }
         ]
       }
@@ -3659,6 +4340,13 @@
             "type": "u64"
           },
           {
+            "name": "withdrawal_waiting_period",
+            "docs": [
+              "The waiting period for a withdrawal. prec: seconds"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -3666,7 +4354,7 @@
             "type": {
               "array": [
                 "u8",
-                56
+                48
               ]
             }
           }
@@ -3724,6 +4412,27 @@
             "name": "locked_profit_degradation_duration",
             "docs": [
               "The locked profit degradation duration."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "redemption_fee",
+            "docs": [
+              "The redemption fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "issuance_fee",
+            "docs": [
+              "The issuance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "withdrawal_waiting_period",
+            "docs": [
+              "The waiting period for a withdrawal."
             ],
             "type": "u64"
           }

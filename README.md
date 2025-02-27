@@ -46,6 +46,9 @@ const vaultParams = {
     managerPerformanceFee: 1000, // 10%
     adminManagementFee: 50, // 0.5%
     adminPerformanceFee: 1000, // 10%
+    redemptionFeePercentageBps: 10, // 0.1%
+    issuanceFeePercentageBps: 10, // 0.1%
+    withdrawalWaitingPeriod: new BN(3600), // 1 hour
   },
   name: "My Vault",
   description: "Example vault",
@@ -117,8 +120,30 @@ const depositIx = await client.createDepositIx(new BN("1000000000"), {
   assetTokenProgram: tokenProgramPubkey,
 });
 
-// Withdraw assets
-const withdrawIx = await client.createWithdrawIx(new BN("1000000000"), {
+// Request withdraw assets
+const requestWithdrawIx = await client.createRequestWithdrawVaultIx(
+  {
+    amount: new BN("1000000000"),
+    isAmountInLp: false,
+    isWithdrawAll: false,
+  },
+  {
+    payer: payerPubkey,
+    userAuthority: userPubkey,
+    vault: vaultPubkey,
+  }
+);
+
+// Cancel withdraw request
+const cancelRequestWithdrawIx = await client.createCancelRequestWithdrawVaultIx(
+  {
+    userAuthority: userPubkey,
+    vault: vaultPubkey,
+  }
+);
+
+// Withdraw from vault
+const withdrawIx = await client.createWithdrawIx({
   userAuthority: userPubkey,
   vault: vaultPubkey,
   vaultAssetMint: mintPubkey,
@@ -128,7 +153,6 @@ const withdrawIx = await client.createWithdrawIx(new BN("1000000000"), {
 // Direct withdraw from strategy
 const directWithdrawIx = await client.createDirectWithdrawStrategyIx(
   {
-    withdrawAmount: new BN("1000000000"),
     userArgs: null,
   },
   {
@@ -159,8 +183,9 @@ console.log("Strategy Positions:", values.strategies);
 #### Vault Management
 
 - `createInitializeVaultIx(vaultParams, params)`
-- `createDepositIx(amount, params)`
-- `createWithdrawIx(amount, params)`
+- `createRequestWithdrawVaultIx(requestWithdrawArgs, params)`
+- `createCancelRequestWithdrawVaultIx(params)`
+- `createWithdrawVaultIx(params)`
 
 #### Strategy Management
 
@@ -192,7 +217,8 @@ console.log("Strategy Positions:", values.strategies);
 #### Calculations
 
 - `calculateAssetsForWithdraw(vaultPk, lpAmount)`
-- `calculateLpTokensForDeposit(depositAmount, vaultPk)`
+- `calculateLpForWithdraw(vaultPk, assetAmount)`
+- `calculateLpForDeposit(vaultPk, assetAmount)`
 
 ## License
 
