@@ -32,6 +32,7 @@ import {
 
 // Import IDL files
 import * as vaultIdl from "./idl/voltr_vault.json";
+import { convertDecimalBitsToDecimal } from "./decimals";
 
 class CustomWallet implements Wallet {
   constructor(readonly payer: Keypair) {}
@@ -437,7 +438,7 @@ export class VoltrClient extends AccountUtils {
    *
    * @param {BN} amount - Amount of tokens to deposit
    * @param {Object} params - Deposit parameters
-   * @param {PublicKey} params.userAuthority - Public key of the user's transfer authority
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user's transfer authority
    * @param {PublicKey} params.vault - Public key of the vault
    * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
    * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
@@ -449,7 +450,7 @@ export class VoltrClient extends AccountUtils {
    * const ix = await client.createDepositVaultIx(
    *   new BN('1000000000'),
    *   {
-   *     userAuthority: userPubkey,
+   *     userTransferAuthority: userPubkey,
    *     vault: vaultPubkey,
    *     vaultAssetMint: mintPubkey,
    *     assetTokenProgram: tokenProgramPubkey
@@ -460,12 +461,12 @@ export class VoltrClient extends AccountUtils {
   async createDepositVaultIx(
     amount: BN,
     {
-      userAuthority,
+      userTransferAuthority,
       vault,
       vaultAssetMint,
       assetTokenProgram,
     }: {
-      userAuthority: PublicKey;
+      userTransferAuthority: PublicKey;
       vault: PublicKey;
       vaultAssetMint: PublicKey;
       assetTokenProgram: PublicKey;
@@ -474,7 +475,7 @@ export class VoltrClient extends AccountUtils {
     return await this.vaultProgram.methods
       .depositVault(amount)
       .accounts({
-        userTransferAuthority: userAuthority,
+        userTransferAuthority,
         vault,
         vaultAssetMint,
         assetTokenProgram,
@@ -491,7 +492,7 @@ export class VoltrClient extends AccountUtils {
    * @param {boolean} requestWithdrawArgs.isWithdrawAll - Whether to withdraw all assets
    * @param {Object} params - Request withdraw parameters
    * @param {PublicKey} params.payer - Public key of the payer
-   * @param {PublicKey} params.userAuthority - Public key of the user authority
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user authority
    * @param {PublicKey} params.vault - Public key of the vault
    * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawal
    *
@@ -506,7 +507,7 @@ export class VoltrClient extends AccountUtils {
    *   },
    *   {
    *     payer: payerPubkey,
-   *     userAuthority: userPubkey,
+   *     userTransferAuthority: userPubkey,
    *     vault: vaultPubkey,
    *   }
    * );
@@ -515,11 +516,11 @@ export class VoltrClient extends AccountUtils {
     { amount, isAmountInLp, isWithdrawAll }: RequestWithdrawVaultArgs,
     {
       payer,
-      userAuthority,
+      userTransferAuthority,
       vault,
     }: {
       payer: PublicKey;
-      userAuthority: PublicKey;
+      userTransferAuthority: PublicKey;
       vault: PublicKey;
     }
   ): Promise<TransactionInstruction> {
@@ -527,7 +528,7 @@ export class VoltrClient extends AccountUtils {
       .requestWithdrawVault(amount, isAmountInLp, isWithdrawAll)
       .accounts({
         payer,
-        userTransferAuthority: userAuthority,
+        userTransferAuthority,
         vault,
       })
       .instruction();
@@ -537,7 +538,7 @@ export class VoltrClient extends AccountUtils {
    * Creates a cancel withdraw instruction for a vault
    *
    * @param {Object} params - Cancel withdraw request parameters
-   * @param {PublicKey} params.userAuthority - Public key of the user authority
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user authority
    * @param {PublicKey} params.vault - Public key of the vault
    * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawal
    *
@@ -546,22 +547,22 @@ export class VoltrClient extends AccountUtils {
    * @example
    * const ix = await client.createCancelRequestWithdrawVaultIx(
    *   {
-   *     userAuthority: userPubkey,
+   *     userTransferAuthority: userPubkey,
    *     vault: vaultPubkey,
    *   }
    * );
    */
   async createCancelRequestWithdrawVaultIx({
-    userAuthority,
+    userTransferAuthority,
     vault,
   }: {
-    userAuthority: PublicKey;
+    userTransferAuthority: PublicKey;
     vault: PublicKey;
   }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .cancelRequestWithdrawVault()
       .accounts({
-        userTransferAuthority: userAuthority,
+        userTransferAuthority,
         vault,
       })
       .instruction();
@@ -571,7 +572,7 @@ export class VoltrClient extends AccountUtils {
    * Creates a withdraw instruction for a vault
    *
    * @param {Object} params - Withdraw parameters
-   * @param {PublicKey} params.userAuthority - Public key of the user authority
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user authority
    * @param {PublicKey} params.vault - Public key of the vault
    * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
    * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
@@ -582,7 +583,7 @@ export class VoltrClient extends AccountUtils {
    * @example
    * const ix = await client.createWithdrawVaultIx(
    *   {
-   *     userAuthority: userPubkey,
+   *     userTransferAuthority: userPubkey,
    *     vault: vaultPubkey,
    *     vaultAssetMint: mintPubkey,
    *     assetTokenProgram: tokenProgramPubkey
@@ -590,12 +591,12 @@ export class VoltrClient extends AccountUtils {
    * );
    */
   async createWithdrawVaultIx({
-    userAuthority,
+    userTransferAuthority,
     vault,
     vaultAssetMint,
     assetTokenProgram,
   }: {
-    userAuthority: PublicKey;
+    userTransferAuthority: PublicKey;
     vault: PublicKey;
     vaultAssetMint: PublicKey;
     assetTokenProgram: PublicKey;
@@ -603,7 +604,7 @@ export class VoltrClient extends AccountUtils {
     return await this.vaultProgram.methods
       .withdrawVault()
       .accounts({
-        userTransferAuthority: userAuthority,
+        userTransferAuthority,
         vault,
         vaultAssetMint,
         assetTokenProgram,
@@ -1106,6 +1107,27 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Fetches all request withdraw vault receipt accounts of a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to an array of request withdraw vault receipt accounts
+   *
+   * @example
+   * ```typescript
+   * const requestWithdrawVaultReceiptAccounts = await client.fetchAllRequestWithdrawVaultReceiptsOfVault(vaultPubkey);
+   * ```
+   */
+  async fetchAllRequestWithdrawVaultReceiptsOfVault(vault: PublicKey) {
+    return await this.vaultProgram.account.requestWithdrawVaultReceipt.all([
+      {
+        memcmp: {
+          offset: 8, // 8 for discriminator
+          bytes: vault.toBase58(),
+        },
+      },
+    ]);
+  }
+
+  /**
    * Fetches all adaptor add receipt accounts of a vault
    * @param vault - Public key of the vault
    * @returns Promise resolving to an array of adaptor add receipt accounts
@@ -1190,6 +1212,33 @@ export class VoltrClient extends AccountUtils {
   }
 
   // --------------------------------------- Helpers
+
+  /**
+   * Fetches all pending withdrawals for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to an array of pending withdrawals
+   *
+   * @example
+   * ```typescript
+   * const pendingWithdrawals = await client.getAllPendingWithdrawalsForVault(vaultPubkey);
+   * ```
+   */
+  async getAllPendingWithdrawalsForVault(vault: PublicKey) {
+    const requestWithdrawVaultReceipts =
+      await this.fetchAllRequestWithdrawVaultReceiptsOfVault(vault);
+
+    return requestWithdrawVaultReceipts.map((receipt) => {
+      const amountAssetToWithdrawDecimal = convertDecimalBitsToDecimal(
+        receipt.account.amountAssetToWithdrawDecimalBits
+      );
+      const amountAssetToWithdraw = amountAssetToWithdrawDecimal.toNumber();
+
+      return {
+        amountAssetToWithdraw,
+        withdrawableFromTs: receipt.account.withdrawableFromTs,
+      };
+    });
+  }
 
   calculateLockedProfit(
     lastUpdatedLockedProfit: BN,

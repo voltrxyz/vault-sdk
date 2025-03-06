@@ -46,8 +46,8 @@ const vaultParams = {
     managerPerformanceFee: 1000, // 10%
     adminManagementFee: 50, // 0.5%
     adminPerformanceFee: 1000, // 10%
-    redemptionFeePercentageBps: 10, // 0.1%
-    issuanceFeePercentageBps: 10, // 0.1%
+    redemptionFee: 10, // 0.1%
+    issuanceFee: 10, // 0.1%
     withdrawalWaitingPeriod: new BN(3600), // 1 hour
   },
   name: "My Vault",
@@ -113,8 +113,8 @@ const initDirectWithdrawIx =
 
 ```typescript
 // Deposit assets
-const depositIx = await client.createDepositIx(new BN("1000000000"), {
-  userAuthority: userPubkey,
+const depositIx = await client.createDepositVaultIx(new BN("1000000000"), {
+  userTransferAuthority: userPubkey,
   vault: vaultPubkey,
   vaultAssetMint: mintPubkey,
   assetTokenProgram: tokenProgramPubkey,
@@ -129,7 +129,7 @@ const requestWithdrawIx = await client.createRequestWithdrawVaultIx(
   },
   {
     payer: payerPubkey,
-    userAuthority: userPubkey,
+    userTransferAuthority: userPubkey,
     vault: vaultPubkey,
   }
 );
@@ -137,14 +137,14 @@ const requestWithdrawIx = await client.createRequestWithdrawVaultIx(
 // Cancel withdraw request
 const cancelRequestWithdrawIx = await client.createCancelRequestWithdrawVaultIx(
   {
-    userAuthority: userPubkey,
+    userTransferAuthority: userPubkey,
     vault: vaultPubkey,
   }
 );
 
 // Withdraw from vault
-const withdrawIx = await client.createWithdrawIx({
-  userAuthority: userPubkey,
+const withdrawIx = await client.createWithdrawVaultIx({
+  userTransferAuthority: userPubkey,
   vault: vaultPubkey,
   vaultAssetMint: mintPubkey,
   assetTokenProgram: tokenProgramPubkey,
@@ -176,6 +176,66 @@ console.log(`Total Value: ${values.totalValue}`);
 console.log("Strategy Positions:", values.strategies);
 ```
 
+### Asset Calculation Utilities
+
+```typescript
+// Calculate the amount of assets that would be received for a given LP token amount
+const assetsToReceive = await client.calculateAssetsForWithdraw(
+  vaultPubkey,
+  new BN("1000000000")
+);
+console.log(`Assets to receive: ${assetsToReceive.toString()}`);
+
+// Calculate the amount of LP tokens needed to withdraw a specific asset amount
+const lpTokensRequired = await client.calculateLpForWithdraw(
+  vaultPubkey,
+  new BN("1000000000")
+);
+console.log(`LP tokens required: ${lpTokensRequired.toString()}`);
+
+// Calculate the amount of LP tokens that would be received for a deposit
+const lpTokensToReceive = await client.calculateLpForDeposit(
+  vaultPubkey,
+  new BN("1000000000")
+);
+console.log(`LP tokens to receive: ${lpTokensToReceive.toString()}`);
+```
+
+### Querying Pending Withdrawals
+
+```typescript
+// Get all pending withdrawals for a vault
+const pendingWithdrawals = await client.getAllPendingWithdrawalsForVault(
+  vaultPubkey
+);
+
+// Process the pending withdrawals
+pendingWithdrawals.forEach((withdrawal, index) => {
+  console.log(`Withdrawal ${index + 1}:`);
+  console.log(`  Asset amount: ${withdrawal.amountAssetToWithdraw}`);
+
+  // Check if withdrawal is available yet
+  const withdrawableTimestamp = withdrawal.withdrawableFromTs.toNumber();
+  const currentTime = Math.floor(Date.now() / 1000);
+  const isWithdrawable = currentTime >= withdrawableTimestamp;
+
+  console.log(
+    `  Withdrawable from: ${new Date(
+      withdrawableTimestamp * 1000
+    ).toLocaleString()}`
+  );
+  console.log(`  Status: ${isWithdrawable ? "Available now" : "Pending"}`);
+  if (!isWithdrawable) {
+    const timeRemaining = Math.max(0, withdrawableTimestamp - currentTime);
+    console.log(
+      `  Time remaining: ${Math.floor(timeRemaining / 3600)}h ${Math.floor(
+        (timeRemaining % 3600) / 60
+      )}m`
+    );
+  }
+});
+```
+
 ## API Reference
 
 ### VoltrClient Methods
@@ -183,6 +243,7 @@ console.log("Strategy Positions:", values.strategies);
 #### Vault Management
 
 - `createInitializeVaultIx(vaultParams, params)`
+- `createUpdateVaultIx(vaultConfig, params)`
 - `createRequestWithdrawVaultIx(requestWithdrawArgs, params)`
 - `createCancelRequestWithdrawVaultIx(params)`
 - `createWithdrawVaultIx(params)`
