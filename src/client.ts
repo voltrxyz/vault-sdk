@@ -1235,7 +1235,7 @@ export class VoltrClient extends AccountUtils {
 
       return {
         amountAssetToWithdraw,
-        withdrawableFromTs: receipt.account.withdrawableFromTs,
+        withdrawableFromTs: receipt.account.withdrawableFromTs.toNumber(),
       };
     });
   }
