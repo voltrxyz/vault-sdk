@@ -1232,14 +1232,45 @@ export class VoltrClient extends AccountUtils {
     const requestWithdrawVaultReceipts =
       await this.fetchAllRequestWithdrawVaultReceiptsOfVault(vault);
 
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    const lpMint = this.findVaultLpMint(vault);
+    const lp = await getMint(this.conn, lpMint);
+
     return requestWithdrawVaultReceipts.map((receipt) => {
       const amountAssetToWithdrawDecimal = convertDecimalBitsToDecimal(
         receipt.account.amountAssetToWithdrawDecimalBits
       );
-      const amountAssetToWithdraw = amountAssetToWithdrawDecimal.toNumber();
+      const amountAssetToWithdrawAtRequest =
+        amountAssetToWithdrawDecimal.toNumber();
+      const amountLpEscrowed = receipt.account.amountLpEscrowed;
+
+      const amountAssetToWithdrawAtPresent =
+        this.calculateAssetsForWithdrawHelper(
+          vaultAccount.asset.totalValue,
+          vaultAccount.lockedProfitState.lastUpdatedLockedProfit,
+          vaultAccount.vaultConfiguration.lockedProfitDegradationDuration,
+          vaultAccount.feeState.accumulatedLpAdminFees,
+          vaultAccount.feeState.accumulatedLpManagerFees,
+          vaultAccount.feeState.accumulatedLpProtocolFees,
+          vaultAccount.feeConfiguration.redemptionFee,
+          new BN(lp.supply.toString()),
+          amountLpEscrowed
+        ).toNumber();
+
+      // Get the capped amount of asset to withdraw
+      // If the latest amount of asset to withdraw is greater than the initial amount of asset to withdraw,
+      // then return the initial amount of asset to withdraw
+      // Otherwise, return the latest amount of asset to withdraw
+      const amountAssetToWithdrawEffective = Math.min(
+        amountAssetToWithdrawAtPresent,
+        amountAssetToWithdrawAtRequest
+      );
 
       return {
-        amountAssetToWithdraw,
+        amountAssetToWithdrawEffective,
+        amountAssetToWithdrawAtRequest,
+        amountAssetToWithdrawAtPresent,
+        amountLpEscrowed: amountLpEscrowed.toNumber(),
         withdrawableFromTs: receipt.account.withdrawableFromTs.toNumber(),
       };
     });
