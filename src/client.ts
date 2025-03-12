@@ -1261,6 +1261,46 @@ export class VoltrClient extends AccountUtils {
     else return lockedProfit;
   }
 
+  calculateAssetsForWithdrawHelper(
+    vaultTotalValue: BN,
+    vaultLastUpdatedLockedProfit: BN,
+    vaultLockedProfitDegradationDuration: BN,
+    vaultAccumulatedLpAdminFees: BN,
+    vaultAccumulatedLpManagerFees: BN,
+    vaultAccumulatedLpProtocolFees: BN,
+    vaultRedemptionFee: number,
+    lpSupply: BN,
+    lpAmount: BN
+  ): BN {
+    if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
+    if (vaultTotalValue <= new BN(0)) throw new Error("Invalid total assets");
+
+    const lockedProfit = this.calculateLockedProfit(
+      vaultLastUpdatedLockedProfit,
+      vaultLockedProfitDegradationDuration,
+      new BN(Date.now() / 1000)
+    );
+
+    const totalUnlockedValue = vaultTotalValue.sub(lockedProfit);
+
+    const unharvestedFeesLp = vaultAccumulatedLpAdminFees
+      .add(vaultAccumulatedLpManagerFees)
+      .add(vaultAccumulatedLpProtocolFees);
+    const lpSupplyInclFees = lpSupply.add(unharvestedFeesLp);
+
+    // asset_to_redeem_pre_fee = amount * (total_asset_pre_withdraw / total_lp_supply_pre_withdraw)
+    // asset_to_redeem_post_fee = asset_to_redeem_pre_fee * (10000 - redemption_fee_bps) / 10000
+    const assetToRedeemNumerator = lpAmount
+      .mul(totalUnlockedValue)
+      .mul(new BN(10000 - vaultRedemptionFee));
+
+    const assetToRedeemDenominator = lpSupplyInclFees.mul(new BN(10000));
+
+    const amount = assetToRedeemNumerator.div(assetToRedeemDenominator);
+
+    return amount;
+  }
+
   /**
    * Calculates the amount of assets that would be received for a given LP token amount
    *
@@ -1285,36 +1325,20 @@ export class VoltrClient extends AccountUtils {
   ): Promise<BN> {
     try {
       const vault = await this.fetchVaultAccount(vaultPk);
-      const totalValue = vault.asset.totalValue;
-      const lockedProfit = this.calculateLockedProfit(
-        vault.lockedProfitState.lastUpdatedLockedProfit,
-        vault.vaultConfiguration.lockedProfitDegradationDuration,
-        new BN(Date.now() / 1000)
-      );
-      const totalUnlockedValue = totalValue.sub(lockedProfit);
-
       const lpMint = this.findVaultLpMint(vaultPk);
       const lp = await getMint(this.conn, lpMint);
-      const lpSupply = new BN(lp.supply.toString());
 
-      // Validate inputs
-      if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
-      if (totalValue <= new BN(0)) throw new Error("Invalid total assets");
-
-      const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
-        .add(vault.feeState.accumulatedLpManagerFees)
-        .add(vault.feeState.accumulatedLpProtocolFees);
-      const lpSupplyInclFees = lpSupply.add(unharvestedFeesLp);
-
-      // asset_to_redeem_pre_fee = amount * (total_asset_pre_withdraw / total_lp_supply_pre_withdraw)
-      // asset_to_redeem_post_fee = asset_to_redeem_pre_fee * (10000 - redemption_fee_bps) / 10000
-      const assetToRedeemNumerator = lpAmount
-        .mul(totalUnlockedValue)
-        .mul(new BN(10000 - vault.feeConfiguration.redemptionFee));
-
-      const assetToRedeemDenominator = lpSupplyInclFees.mul(new BN(10000));
-
-      const amount = assetToRedeemNumerator.div(assetToRedeemDenominator);
+      const amount = this.calculateAssetsForWithdrawHelper(
+        vault.asset.totalValue,
+        vault.lockedProfitState.lastUpdatedLockedProfit,
+        vault.vaultConfiguration.lockedProfitDegradationDuration,
+        vault.feeState.accumulatedLpAdminFees,
+        vault.feeState.accumulatedLpManagerFees,
+        vault.feeState.accumulatedLpProtocolFees,
+        vault.feeConfiguration.redemptionFee,
+        new BN(lp.supply.toString()),
+        lpAmount
+      );
 
       return amount;
     } catch (e) {
