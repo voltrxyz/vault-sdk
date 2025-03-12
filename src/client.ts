@@ -12,11 +12,7 @@ import {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import {
-  TOKEN_PROGRAM_ID,
-  getMint,
-  getAssociatedTokenAddressSync,
-} from "@solana/spl-token";
+import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 import { LENDING_ADAPTOR_PROGRAM_ID, SEEDS } from "./constants";
 import {
@@ -352,20 +348,29 @@ export class VoltrClient extends AccountUtils {
       manager,
       payer,
     }: {
-      vault: Keypair;
+      vault: PublicKey;
       vaultAssetMint: PublicKey;
       admin: PublicKey;
       manager: PublicKey;
       payer: PublicKey;
     }
   ): Promise<TransactionInstruction> {
-    const addresses = this.findVaultAddresses(vault.publicKey);
+    const addresses = this.findVaultAddresses(vault);
 
     const vaultAssetIdleAta = getAssociatedTokenAddressSync(
       vaultAssetMint,
       addresses.vaultAssetIdleAuth,
       true
     );
+
+    const vaultAssetMintAccount = await this.provider.connection.getAccountInfo(
+      vaultAssetMint
+    );
+    const assetTokenProgram = vaultAssetMintAccount?.owner;
+
+    if (!assetTokenProgram) {
+      throw new Error("Vault asset mint not found");
+    }
 
     return await this.vaultProgram.methods
       .initializeVault(
@@ -377,10 +382,10 @@ export class VoltrClient extends AccountUtils {
         payer,
         admin,
         manager,
-        vault: vault.publicKey,
+        vault,
         vaultAssetMint,
         vaultAssetIdleAta,
-        assetTokenProgram: TOKEN_PROGRAM_ID,
+        assetTokenProgram,
       })
       .instruction();
   }
