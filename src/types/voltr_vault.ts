@@ -1599,6 +1599,298 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "harvestFee",
+      "discriminator": [
+        32,
+        59,
+        42,
+        128,
+        246,
+        73,
+        255,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "harvester",
+          "signer": true
+        },
+        {
+          "name": "vaultManager"
+        },
+        {
+          "name": "vaultAdmin"
+        },
+        {
+          "name": "protocolAdmin"
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vaultLpMintAuth",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vaultManagerLpAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultManager"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultAdminLpAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultAdmin"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "protocolAdminLpAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolAdmin"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initOrUpdateProtocol",
       "discriminator": [
         149,
@@ -3520,78 +3812,63 @@ export type VoltrVault = {
     },
     {
       "code": 6001,
-      "name": "invalidAccountOwner",
-      "msg": "Invalid account owner."
-    },
-    {
-      "code": 6002,
-      "name": "alreadyInitialized",
-      "msg": "Already initialized."
-    },
-    {
-      "code": 6003,
       "name": "invalidTokenMint",
       "msg": "Invalid token mint."
     },
     {
-      "code": 6004,
+      "code": 6002,
       "name": "invalidTokenAccount",
       "msg": "Invalid token account."
     },
     {
-      "code": 6005,
+      "code": 6003,
       "name": "invalidAccountInput",
       "msg": "Invalid account input."
     },
     {
-      "code": 6006,
-      "name": "notRentExempt",
-      "msg": "Not rent exempt."
-    },
-    {
-      "code": 6007,
+      "code": 6004,
       "name": "mathOverflow",
       "msg": "Math overflow."
     },
     {
-      "code": 6008,
+      "code": 6005,
       "name": "maxCapExceeded",
       "msg": "Max cap exceeded."
     },
     {
-      "code": 6009,
-      "name": "strategyNotEmpty",
-      "msg": "Strategy not empty."
-    },
-    {
-      "code": 6010,
+      "code": 6006,
       "name": "vaultNotActive",
       "msg": "Vault not active."
     },
     {
-      "code": 6011,
+      "code": 6007,
       "name": "managerNotAllowed",
       "msg": "Manager not allowed in remaining."
     },
     {
-      "code": 6012,
+      "code": 6008,
       "name": "operationNotAllowed",
       "msg": "Operation not allowed."
     },
     {
-      "code": 6013,
+      "code": 6009,
       "name": "adaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
     },
     {
-      "code": 6014,
+      "code": 6010,
       "name": "invalidFeeConfiguration",
       "msg": "Fee configuration invalid."
     },
     {
-      "code": 6015,
+      "code": 6011,
       "name": "withdrawalNotYetAvailable",
       "msg": "Withdrawal not yet available."
+    },
+    {
+      "code": 6012,
+      "name": "invalidInput",
+      "msg": "Invalid input."
     }
   ],
   "types": [
@@ -3633,18 +3910,14 @@ export type VoltrVault = {
             "type": "u8"
           },
           {
-            "name": "isActive",
-            "type": "bool"
-          },
-          {
             "name": "padding0",
             "docs": [
-              "6 bytes of padding to align future 8-byte fields on 8-byte boundaries."
+              "7 bytes of padding to align future 8-byte fields on 8-byte boundaries."
             ],
             "type": {
               "array": [
                 "u8",
-                6
+                7
               ]
             }
           },

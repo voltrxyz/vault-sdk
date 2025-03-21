@@ -244,9 +244,11 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 
 - `createInitializeVaultIx(vaultParams, params)`
 - `createUpdateVaultIx(vaultConfig, params)`
+- `createDepositVaultIx(amount, params)`
 - `createRequestWithdrawVaultIx(requestWithdrawArgs, params)`
 - `createCancelRequestWithdrawVaultIx(params)`
 - `createWithdrawVaultIx(params)`
+- `createHarvestFeeIx(params)`
 
 #### Strategy Management
 
@@ -261,10 +263,16 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 #### Account Data
 
 - `fetchVaultAccount(vault)`
+- `fetchStrategyInitReceiptAccount(strategyInitReceipt)`
+- `fetchAdaptorAddReceiptAccount(adaptorAddReceipt)`
 - `fetchAllStrategyInitReceiptAccounts()`
 - `fetchAllStrategyInitReceiptAccountsOfVault(vault)`
 - `fetchAllAdaptorAddReceiptAccountsOfVault(vault)`
+- `fetchAllRequestWithdrawVaultReceiptsOfVault(vault)`
 - `getPositionAndTotalValuesForVault(vault)`
+- `getAccumulatedAdminFeesForVault(vault)`
+- `getAccumulatedManagerFeesForVault(vault)`
+- `getAllPendingWithdrawalsForVault(vault)`
 
 #### PDA Finding
 
@@ -274,6 +282,8 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `findVaultStrategyAuth(vault, strategy)`
 - `findStrategyInitReceipt(vault, strategy)`
 - `findDirectWithdrawInitReceipt(vault, strategy)`
+- `findVaultStrategyAddresses(vault, strategy)`
+- `findRequestWithdrawVaultReceipt(vault, user)`
 
 #### Calculations
 

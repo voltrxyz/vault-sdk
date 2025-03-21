@@ -82,7 +82,7 @@ class AccountUtils {
  *
  * @example
  * ```typescript
- * import { VoltrClient } from '@voltr/sdk';
+ * import { VoltrClient } from '@voltr/vault-sdk';
  * import { Connection } from '@solana/web3.js';
  *
  * const connection = new Connection('https://api.mainnet-beta.solana.com');
@@ -1075,6 +1075,53 @@ export class VoltrClient extends AccountUtils {
       .instruction();
   }
 
+  /**
+   * Creates an instruction to harvest fees from a vault
+   * @param {Object} params - Parameters for harvesting fees
+   * @param {PublicKey} params.harvester - Public key of the harvester
+   * @param {PublicKey} params.vaultManager - Public key of the vault manager
+   * @param {PublicKey} params.vaultAdmin - Public key of the vault admin
+   * @param {PublicKey} params.protocolAdmin - Public key of the protocol admin
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for harvesting fees
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createHarvestFeeIx({
+   *   harvester: harvesterPubkey,
+   *   vaultManager: vaultManagerPubkey,
+   *   vaultAdmin: vaultAdminPubkey,
+   *   protocolAdmin: protocolAdminPubkey,
+   *   vault: vaultPubkey,
+   * });
+   * ```
+   */
+  async createHarvestFeeIx({
+    harvester,
+    vaultManager,
+    vaultAdmin,
+    protocolAdmin,
+    vault,
+  }: {
+    harvester: PublicKey;
+    vaultManager: PublicKey;
+    vaultAdmin: PublicKey;
+    protocolAdmin: PublicKey;
+    vault: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .harvestFee()
+      .accounts({
+        harvester,
+        vaultManager,
+        vaultAdmin,
+        vault,
+        protocolAdmin,
+      })
+      .instruction();
+  }
+
   // --------------------------------------- Account Fetching All
 
   /**
@@ -1217,6 +1264,35 @@ export class VoltrClient extends AccountUtils {
   }
 
   // --------------------------------------- Helpers
+  /**
+   * Fetches the accumulated admin fees for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the accumulated admin fees
+   *
+   * @example
+   * ```typescript
+   * const accumulatedAdminFees = await client.getAccumulatedAdminFeesForVault(vaultPubkey);
+   * ```
+   */
+  async getAccumulatedAdminFeesForVault(vault: PublicKey) {
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    return vaultAccount.feeState.accumulatedLpAdminFees;
+  }
+
+  /**
+   * Fetches the accumulated manager fees for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the accumulated manager fees
+   *
+   * @example
+   * ```typescript
+   * const accumulatedManagerFees = await client.getAccumulatedManagerFeesForVault(vaultPubkey);
+   * ```
+   */
+  async getAccumulatedManagerFeesForVault(vault: PublicKey) {
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    return vaultAccount.feeState.accumulatedLpManagerFees;
+  }
 
   /**
    * Fetches all pending withdrawals for a vault

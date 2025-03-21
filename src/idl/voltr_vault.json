@@ -1593,6 +1593,298 @@
       ]
     },
     {
+      "name": "harvest_fee",
+      "discriminator": [
+        32,
+        59,
+        42,
+        128,
+        246,
+        73,
+        255,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "harvester",
+          "signer": true
+        },
+        {
+          "name": "vault_manager"
+        },
+        {
+          "name": "vault_admin"
+        },
+        {
+          "name": "protocol_admin"
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_lp_mint_auth",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_manager_lp_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vault_manager"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vault_admin_lp_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vault_admin"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "protocol_admin_lp_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocol_admin"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "lp_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "init_or_update_protocol",
       "discriminator": [
         149,
@@ -3514,78 +3806,63 @@
     },
     {
       "code": 6001,
-      "name": "InvalidAccountOwner",
-      "msg": "Invalid account owner."
-    },
-    {
-      "code": 6002,
-      "name": "AlreadyInitialized",
-      "msg": "Already initialized."
-    },
-    {
-      "code": 6003,
       "name": "InvalidTokenMint",
       "msg": "Invalid token mint."
     },
     {
-      "code": 6004,
+      "code": 6002,
       "name": "InvalidTokenAccount",
       "msg": "Invalid token account."
     },
     {
-      "code": 6005,
+      "code": 6003,
       "name": "InvalidAccountInput",
       "msg": "Invalid account input."
     },
     {
-      "code": 6006,
-      "name": "NotRentExempt",
-      "msg": "Not rent exempt."
-    },
-    {
-      "code": 6007,
+      "code": 6004,
       "name": "MathOverflow",
       "msg": "Math overflow."
     },
     {
-      "code": 6008,
+      "code": 6005,
       "name": "MaxCapExceeded",
       "msg": "Max cap exceeded."
     },
     {
-      "code": 6009,
-      "name": "StrategyNotEmpty",
-      "msg": "Strategy not empty."
-    },
-    {
-      "code": 6010,
+      "code": 6006,
       "name": "VaultNotActive",
       "msg": "Vault not active."
     },
     {
-      "code": 6011,
+      "code": 6007,
       "name": "ManagerNotAllowed",
       "msg": "Manager not allowed in remaining."
     },
     {
-      "code": 6012,
+      "code": 6008,
       "name": "OperationNotAllowed",
       "msg": "Operation not allowed."
     },
     {
-      "code": 6013,
+      "code": 6009,
       "name": "AdaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
     },
     {
-      "code": 6014,
+      "code": 6010,
       "name": "InvalidFeeConfiguration",
       "msg": "Fee configuration invalid."
     },
     {
-      "code": 6015,
+      "code": 6011,
       "name": "WithdrawalNotYetAvailable",
       "msg": "Withdrawal not yet available."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidInput",
+      "msg": "Invalid input."
     }
   ],
   "types": [
@@ -3627,18 +3904,14 @@
             "type": "u8"
           },
           {
-            "name": "is_active",
-            "type": "bool"
-          },
-          {
             "name": "_padding0",
             "docs": [
-              "6 bytes of padding to align future 8-byte fields on 8-byte boundaries."
+              "7 bytes of padding to align future 8-byte fields on 8-byte boundaries."
             ],
             "type": {
               "array": [
                 "u8",
-                6
+                7
               ]
             }
           },
