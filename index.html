@@ -34,9 +34,11 @@
 <a id="api-reference" class="tsd-anchor"></a><h2 class="tsd-anchor-link">API Reference<a href="#api-reference" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><a id="voltrclient-methods" class="tsd-anchor"></a><h3 class="tsd-anchor-link">VoltrClient Methods<a href="#voltrclient-methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><a id="vault-management" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Vault Management<a href="#vault-management" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
 <li><code>createInitializeVaultIx(vaultParams, params)</code></li>
 <li><code>createUpdateVaultIx(vaultConfig, params)</code></li>
+<li><code>createDepositVaultIx(amount, params)</code></li>
 <li><code>createRequestWithdrawVaultIx(requestWithdrawArgs, params)</code></li>
 <li><code>createCancelRequestWithdrawVaultIx(params)</code></li>
 <li><code>createWithdrawVaultIx(params)</code></li>
+<li><code>createHarvestFeeIx(params)</code></li>
 </ul>
 <a id="strategy-management-1" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Strategy Management<a href="#strategy-management-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
 <li><code>createAddAdaptorIx(params)</code></li>
@@ -49,10 +51,16 @@
 </ul>
 <a id="account-data" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Account Data<a href="#account-data" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
 <li><code>fetchVaultAccount(vault)</code></li>
+<li><code>fetchStrategyInitReceiptAccount(strategyInitReceipt)</code></li>
+<li><code>fetchAdaptorAddReceiptAccount(adaptorAddReceipt)</code></li>
 <li><code>fetchAllStrategyInitReceiptAccounts()</code></li>
 <li><code>fetchAllStrategyInitReceiptAccountsOfVault(vault)</code></li>
 <li><code>fetchAllAdaptorAddReceiptAccountsOfVault(vault)</code></li>
+<li><code>fetchAllRequestWithdrawVaultReceiptsOfVault(vault)</code></li>
 <li><code>getPositionAndTotalValuesForVault(vault)</code></li>
+<li><code>getAccumulatedAdminFeesForVault(vault)</code></li>
+<li><code>getAccumulatedManagerFeesForVault(vault)</code></li>
+<li><code>getAllPendingWithdrawalsForVault(vault)</code></li>
 </ul>
 <a id="pda-finding" class="tsd-anchor"></a><h4 class="tsd-anchor-link">PDA Finding<a href="#pda-finding" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
 <li><code>findVaultLpMint(vault)</code></li>
@@ -61,6 +69,8 @@
 <li><code>findVaultStrategyAuth(vault, strategy)</code></li>
 <li><code>findStrategyInitReceipt(vault, strategy)</code></li>
 <li><code>findDirectWithdrawInitReceipt(vault, strategy)</code></li>
+<li><code>findVaultStrategyAddresses(vault, strategy)</code></li>
+<li><code>findRequestWithdrawVaultReceipt(vault, user)</code></li>
 </ul>
 <a id="calculations" class="tsd-anchor"></a><h4 class="tsd-anchor-link">Calculations<a href="#calculations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h4><ul>
 <li><code>calculateAssetsForWithdraw(vaultPk, lpAmount)</code></li>
