@@ -1263,6 +1263,25 @@ export class VoltrClient extends AccountUtils {
     );
   }
 
+  /**
+   * Fetches a request withdraw vault receipt account's data
+   * @param requestWithdrawVaultReceipt - Public key of the request withdraw vault receipt account
+   * @returns Promise resolving to the request withdraw vault receipt account data
+   *
+   * @example
+   * ```typescript
+   * const requestWithdrawVaultReceiptAccount = await client.fetchRequestWithdrawVaultReceiptAccount(requestWithdrawVaultReceiptPubkey);
+   * ```
+   */
+  async fetchRequestWithdrawVaultReceiptAccount(
+    requestWithdrawVaultReceipt: PublicKey
+  ) {
+    return await this.vaultProgram.account.requestWithdrawVaultReceipt.fetch(
+      requestWithdrawVaultReceipt,
+      "confirmed"
+    );
+  }
+
   // --------------------------------------- Helpers
   /**
    * Fetches the accumulated admin fees for a vault
@@ -1295,6 +1314,88 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Processes a withdrawal receipt into a standardized withdrawal info object
+   * @private
+   */
+  private async processWithdrawalReceipt(
+    receipt: {
+      account: {
+        user: PublicKey;
+        amountAssetToWithdrawDecimalBits: BN;
+        amountLpEscrowed: BN;
+        withdrawableFromTs: BN;
+      };
+    },
+    vaultAccount: any,
+    lpSupply: BN
+  ) {
+    const amountAssetToWithdrawDecimal = convertDecimalBitsToDecimal(
+      receipt.account.amountAssetToWithdrawDecimalBits
+    );
+    const amountAssetToWithdrawAtRequest =
+      amountAssetToWithdrawDecimal.toNumber();
+    const amountLpEscrowed = receipt.account.amountLpEscrowed;
+
+    const amountAssetToWithdrawAtPresent =
+      this.calculateAssetsForWithdrawHelper(
+        vaultAccount.asset.totalValue,
+        vaultAccount.lockedProfitState.lastUpdatedLockedProfit,
+        vaultAccount.vaultConfiguration.lockedProfitDegradationDuration,
+        vaultAccount.feeState.accumulatedLpAdminFees,
+        vaultAccount.feeState.accumulatedLpManagerFees,
+        vaultAccount.feeState.accumulatedLpProtocolFees,
+        vaultAccount.feeConfiguration.redemptionFee,
+        lpSupply,
+        amountLpEscrowed
+      ).toNumber();
+
+    // Cap the withdrawal amount to the initial request amount
+    const amountAssetToWithdrawEffective = Math.min(
+      amountAssetToWithdrawAtPresent,
+      amountAssetToWithdrawAtRequest
+    );
+
+    return {
+      user: receipt.account.user,
+      amountAssetToWithdrawEffective,
+      amountAssetToWithdrawAtRequest,
+      amountAssetToWithdrawAtPresent,
+      amountLpEscrowed: amountLpEscrowed.toNumber(),
+      withdrawableFromTs: receipt.account.withdrawableFromTs.toNumber(),
+    };
+  }
+
+  /**
+   * Fetches the pending withdrawal for a user
+   * @param vault - Public key of the vault
+   * @param user - Public key of the user
+   * @returns Promise resolving to the pending withdrawal
+   *
+   * @example
+   * ```typescript
+   * const pendingWithdrawal = await client.getPendingWithdrawalForUser(vaultPubkey, userPubkey);
+   * ```
+   */
+  async getPendingWithdrawalForUser(vault: PublicKey, user: PublicKey) {
+    const [vaultAccount, lp] = await Promise.all([
+      this.fetchVaultAccount(vault),
+      getMint(this.conn, this.findVaultLpMint(vault)),
+    ]);
+
+    const requestWithdrawVaultReceiptAddress =
+      this.findRequestWithdrawVaultReceipt(vault, user);
+    const receipt = await this.fetchRequestWithdrawVaultReceiptAccount(
+      requestWithdrawVaultReceiptAddress
+    );
+
+    return this.processWithdrawalReceipt(
+      { account: receipt },
+      vaultAccount,
+      new BN(lp.supply.toString())
+    );
+  }
+
+  /**
    * Fetches all pending withdrawals for a vault
    * @param vault - Public key of the vault
    * @returns Promise resolving to an array of pending withdrawals
@@ -1305,51 +1406,19 @@ export class VoltrClient extends AccountUtils {
    * ```
    */
   async getAllPendingWithdrawalsForVault(vault: PublicKey) {
-    const requestWithdrawVaultReceipts =
-      await this.fetchAllRequestWithdrawVaultReceiptsOfVault(vault);
+    const [requestWithdrawVaultReceipts, vaultAccount, lp] = await Promise.all([
+      this.fetchAllRequestWithdrawVaultReceiptsOfVault(vault),
+      this.fetchVaultAccount(vault),
+      getMint(this.conn, this.findVaultLpMint(vault)),
+    ]);
 
-    const vaultAccount = await this.fetchVaultAccount(vault);
-    const lpMint = this.findVaultLpMint(vault);
-    const lp = await getMint(this.conn, lpMint);
+    const lpSupply = new BN(lp.supply.toString());
 
-    return requestWithdrawVaultReceipts.map((receipt) => {
-      const amountAssetToWithdrawDecimal = convertDecimalBitsToDecimal(
-        receipt.account.amountAssetToWithdrawDecimalBits
-      );
-      const amountAssetToWithdrawAtRequest =
-        amountAssetToWithdrawDecimal.toNumber();
-      const amountLpEscrowed = receipt.account.amountLpEscrowed;
-
-      const amountAssetToWithdrawAtPresent =
-        this.calculateAssetsForWithdrawHelper(
-          vaultAccount.asset.totalValue,
-          vaultAccount.lockedProfitState.lastUpdatedLockedProfit,
-          vaultAccount.vaultConfiguration.lockedProfitDegradationDuration,
-          vaultAccount.feeState.accumulatedLpAdminFees,
-          vaultAccount.feeState.accumulatedLpManagerFees,
-          vaultAccount.feeState.accumulatedLpProtocolFees,
-          vaultAccount.feeConfiguration.redemptionFee,
-          new BN(lp.supply.toString()),
-          amountLpEscrowed
-        ).toNumber();
-
-      // Get the capped amount of asset to withdraw
-      // If the latest amount of asset to withdraw is greater than the initial amount of asset to withdraw,
-      // then return the initial amount of asset to withdraw
-      // Otherwise, return the latest amount of asset to withdraw
-      const amountAssetToWithdrawEffective = Math.min(
-        amountAssetToWithdrawAtPresent,
-        amountAssetToWithdrawAtRequest
-      );
-
-      return {
-        amountAssetToWithdrawEffective,
-        amountAssetToWithdrawAtRequest,
-        amountAssetToWithdrawAtPresent,
-        amountLpEscrowed: amountLpEscrowed.toNumber(),
-        withdrawableFromTs: receipt.account.withdrawableFromTs.toNumber(),
-      };
-    });
+    return Promise.all(
+      requestWithdrawVaultReceipts.map((receipt) =>
+        this.processWithdrawalReceipt(receipt, vaultAccount, lpSupply)
+      )
+    );
   }
 
   calculateLockedProfit(

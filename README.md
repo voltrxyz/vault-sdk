@@ -265,6 +265,7 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `fetchVaultAccount(vault)`
 - `fetchStrategyInitReceiptAccount(strategyInitReceipt)`
 - `fetchAdaptorAddReceiptAccount(adaptorAddReceipt)`
+- `fetchRequestWithdrawVaultReceiptAccount(requestWithdrawVaultReceipt)`
 - `fetchAllStrategyInitReceiptAccounts()`
 - `fetchAllStrategyInitReceiptAccountsOfVault(vault)`
 - `fetchAllAdaptorAddReceiptAccountsOfVault(vault)`
@@ -272,6 +273,7 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `getPositionAndTotalValuesForVault(vault)`
 - `getAccumulatedAdminFeesForVault(vault)`
 - `getAccumulatedManagerFeesForVault(vault)`
+- `getPendingWithdrawalForUser(vault, user)`
 - `getAllPendingWithdrawalsForVault(vault)`
 
 #### PDA Finding
