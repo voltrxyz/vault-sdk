@@ -275,6 +275,8 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `getAccumulatedManagerFeesForVault(vault)`
 - `getPendingWithdrawalForUser(vault, user)`
 - `getAllPendingWithdrawalsForVault(vault)`
+- `getCurrentAssetPerLpForVault(vault)`
+- `getHighWaterMarkForVault(vault)`
 
 #### PDA Finding
 

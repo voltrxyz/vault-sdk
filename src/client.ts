@@ -1200,24 +1200,6 @@ export class VoltrClient extends AccountUtils {
     ]);
   }
 
-  async getPositionAndTotalValuesForVault(vault: PublicKey) {
-    const vaultAccount = await this.fetchVaultAccount(vault);
-    const totalAssetValue: BN = vaultAccount.asset.totalValue;
-    const strategyInitReceiptAccounts =
-      await this.fetchAllStrategyInitReceiptAccountsOfVault(vault);
-    const strategyInfo = strategyInitReceiptAccounts.map(
-      (vaultStrategyAccount) => ({
-        strategyId: vaultStrategyAccount.account.strategy.toBase58(),
-        amount: vaultStrategyAccount.account.positionValue.toNumber(),
-      })
-    );
-
-    return {
-      totalValue: totalAssetValue.toNumber(),
-      strategies: strategyInfo,
-    };
-  }
-
   // --------------------------------------- Account Fetching
 
   /**
@@ -1283,6 +1265,35 @@ export class VoltrClient extends AccountUtils {
   }
 
   // --------------------------------------- Helpers
+
+  /**
+   * Fetches the position and total values for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the position and total values
+   *
+   * @example
+   * ```typescript
+   * const positionAndTotalValues = await client.getPositionAndTotalValuesForVault(vaultPubkey);
+   * ```
+   */
+  async getPositionAndTotalValuesForVault(vault: PublicKey) {
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    const totalAssetValue: BN = vaultAccount.asset.totalValue;
+    const strategyInitReceiptAccounts =
+      await this.fetchAllStrategyInitReceiptAccountsOfVault(vault);
+    const strategyInfo = strategyInitReceiptAccounts.map(
+      (vaultStrategyAccount) => ({
+        strategyId: vaultStrategyAccount.account.strategy.toBase58(),
+        amount: vaultStrategyAccount.account.positionValue.toNumber(),
+      })
+    );
+
+    return {
+      totalValue: totalAssetValue.toNumber(),
+      strategies: strategyInfo,
+    };
+  }
+
   /**
    * Fetches the accumulated admin fees for a vault
    * @param vault - Public key of the vault
@@ -1311,6 +1322,56 @@ export class VoltrClient extends AccountUtils {
   async getAccumulatedManagerFeesForVault(vault: PublicKey) {
     const vaultAccount = await this.fetchVaultAccount(vault);
     return vaultAccount.feeState.accumulatedLpManagerFees;
+  }
+
+  /**
+   * Fetches the current asset per LP for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the current asset per LP
+   *
+   * @example
+   * ```typescript
+   * const currentAssetPerLp = await client.getCurrentAssetPerLpForVault(vaultPubkey);
+   * ```
+   */
+  async getCurrentAssetPerLpForVault(vault: PublicKey) {
+    const vaultLpMint = this.findVaultLpMint(vault);
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    const lpSupply = await getMint(this.conn, vaultLpMint).then(
+      (lp) => new BN(lp.supply.toString())
+    );
+    const unharvestedFeesLp = vaultAccount.feeState.accumulatedLpAdminFees
+      .add(vaultAccount.feeState.accumulatedLpManagerFees)
+      .add(vaultAccount.feeState.accumulatedLpProtocolFees);
+
+    const totalLpSupply = unharvestedFeesLp.add(lpSupply);
+
+    const currentAssetPerLp =
+      vaultAccount.asset.totalValue.toNumber() / totalLpSupply.toNumber();
+
+    return currentAssetPerLp;
+  }
+
+  /**
+   * Fetches the high water mark for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the high water mark
+   *
+   * @example
+   * ```typescript
+   * const highWaterMark = await client.getHighWaterMarkForVault(vaultPubkey);
+   * ```
+   */
+  async getHighWaterMarkForVault(vault: PublicKey) {
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    const highWaterMarkValue = convertDecimalBitsToDecimal(
+      vaultAccount.highWaterMark.highestAssetPerLpDecimalBits
+    );
+
+    return {
+      highestAssetPerLp: highWaterMarkValue.toNumber(),
+      lastUpdatedTs: vaultAccount.highWaterMark.lastUpdatedTs.toNumber(),
+    };
   }
 
   /**
