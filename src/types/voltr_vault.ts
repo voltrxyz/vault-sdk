@@ -370,6 +370,103 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "closeStrategy",
+      "discriminator": [
+        56,
+        247,
+        170,
+        246,
+        89,
+        221,
+        134,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "manager",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "strategyInitReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "depositStrategy",
       "discriminator": [
         246,
@@ -3804,6 +3901,229 @@ export type VoltrVault = {
       ]
     }
   ],
+  "events": [
+    {
+      "name": "addAdaptorEvent",
+      "discriminator": [
+        24,
+        181,
+        201,
+        148,
+        240,
+        183,
+        235,
+        12
+      ]
+    },
+    {
+      "name": "cancelRequestWithdrawVaultEvent",
+      "discriminator": [
+        46,
+        165,
+        24,
+        114,
+        1,
+        80,
+        205,
+        136
+      ]
+    },
+    {
+      "name": "closeStrategyEvent",
+      "discriminator": [
+        213,
+        95,
+        219,
+        161,
+        17,
+        208,
+        93,
+        255
+      ]
+    },
+    {
+      "name": "depositStrategyEvent",
+      "discriminator": [
+        202,
+        201,
+        118,
+        49,
+        29,
+        180,
+        116,
+        170
+      ]
+    },
+    {
+      "name": "depositVaultEvent",
+      "discriminator": [
+        11,
+        15,
+        7,
+        92,
+        150,
+        100,
+        165,
+        232
+      ]
+    },
+    {
+      "name": "directWithdrawStrategyEvent",
+      "discriminator": [
+        113,
+        202,
+        151,
+        124,
+        137,
+        255,
+        153,
+        101
+      ]
+    },
+    {
+      "name": "harvestFeeEvent",
+      "discriminator": [
+        69,
+        48,
+        192,
+        23,
+        232,
+        22,
+        23,
+        30
+      ]
+    },
+    {
+      "name": "initProtocolEvent",
+      "discriminator": [
+        13,
+        81,
+        183,
+        132,
+        88,
+        43,
+        202,
+        213
+      ]
+    },
+    {
+      "name": "initializeDirectWithdrawStrategyEvent",
+      "discriminator": [
+        169,
+        22,
+        57,
+        8,
+        15,
+        73,
+        255,
+        115
+      ]
+    },
+    {
+      "name": "initializeStrategyEvent",
+      "discriminator": [
+        30,
+        233,
+        211,
+        249,
+        83,
+        188,
+        234,
+        152
+      ]
+    },
+    {
+      "name": "initializeVaultEvent",
+      "discriminator": [
+        179,
+        75,
+        50,
+        161,
+        191,
+        28,
+        245,
+        107
+      ]
+    },
+    {
+      "name": "removeAdaptorEvent",
+      "discriminator": [
+        155,
+        178,
+        2,
+        29,
+        245,
+        86,
+        246,
+        153
+      ]
+    },
+    {
+      "name": "requestWithdrawVaultEvent",
+      "discriminator": [
+        59,
+        94,
+        26,
+        38,
+        47,
+        131,
+        158,
+        162
+      ]
+    },
+    {
+      "name": "updateProtocolEvent",
+      "discriminator": [
+        14,
+        227,
+        204,
+        217,
+        62,
+        46,
+        241,
+        237
+      ]
+    },
+    {
+      "name": "updateVaultEvent",
+      "discriminator": [
+        123,
+        31,
+        27,
+        189,
+        102,
+        1,
+        121,
+        57
+      ]
+    },
+    {
+      "name": "withdrawStrategyEvent",
+      "discriminator": [
+        112,
+        45,
+        16,
+        172,
+        170,
+        33,
+        22,
+        212
+      ]
+    },
+    {
+      "name": "withdrawVaultEvent",
+      "discriminator": [
+        196,
+        123,
+        79,
+        215,
+        4,
+        214,
+        20,
+        197
+      ]
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -3944,6 +4264,190 @@ export type VoltrVault = {
       }
     },
     {
+      "name": "addAdaptorEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorAddReceipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cancelRequestWithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "requestWithdrawVaultReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "amountLpRefunded",
+            "type": "u64"
+          },
+          {
+            "name": "amountLpBurned",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "closeStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "depositStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "vaultAssetIdleAtaAmountBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetIdleAtaAmountAfter",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueAfter",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "depositVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "vaultLastUpdatedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "directWithdrawInitReceipt",
       "type": {
         "kind": "struct",
@@ -4005,6 +4509,66 @@ export type VoltrVault = {
               "The bump for the strategy init receipt."
             ],
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "directWithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "directWithdrawInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "strategyPositionValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueAfter",
+            "type": "u64"
           }
         ]
       }
@@ -4121,6 +4685,42 @@ export type VoltrVault = {
       }
     },
     {
+      "name": "harvestFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "protocol",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
+            "name": "amountLpAdminFees",
+            "type": "u64"
+          },
+          {
+            "name": "amountLpManagerFees",
+            "type": "u64"
+          },
+          {
+            "name": "amountLpProtocolFees",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "highWaterMark",
       "serialization": "bytemuckunsafe",
       "repr": {
@@ -4154,6 +4754,170 @@ export type VoltrVault = {
                 8
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "initProtocolEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "operationalState",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "initializeDirectWithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "instructionDiscriminator",
+            "type": "bytes"
+          },
+          {
+            "name": "additionalArgs",
+            "type": "bytes"
+          },
+          {
+            "name": "allowUserArgs",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "initializeStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "initializeVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultName",
+            "type": "string"
+          },
+          {
+            "name": "vaultDescription",
+            "type": "string"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetIdleAta",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultLpMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultManager",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultConfigMaxCap",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigStartAtTs",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigLockedProfitDegradationDuration",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigWithdrawalWaitingPeriod",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigManagerPerformanceFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminPerformanceFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigManagerManagementFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminManagementFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigRedemptionFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigIssuanceFee",
+            "type": "u16"
+          },
+          {
+            "name": "vaultLastUpdatedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4238,6 +5002,58 @@ export type VoltrVault = {
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "removeAdaptorEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorAddReceipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "requestWithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "requestWithdrawVaultReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "amountLpEscrowed",
+            "type": "u64"
+          },
+          {
+            "name": "amountAssetToWithdrawDecimalBits",
+            "type": "u128"
+          },
+          {
+            "name": "withdrawableFromTs",
+            "type": "u64"
           }
         ]
       }
@@ -4370,6 +5186,138 @@ export type VoltrVault = {
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "updateProtocolEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "protocol",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminBefore",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminAfter",
+            "type": "pubkey"
+          },
+          {
+            "name": "operationalStateBefore",
+            "type": "u16"
+          },
+          {
+            "name": "operationalStateAfter",
+            "type": "u16"
+          },
+          {
+            "name": "feeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "feeAfter",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "updateVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultConfigMaxCapBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigMaxCapAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigStartAtTsBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigStartAtTsAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigLockedProfitDegradationDurationBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigLockedProfitDegradationDurationAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigWithdrawalWaitingPeriodBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigWithdrawalWaitingPeriodAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultConfigManagerPerformanceFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigManagerPerformanceFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminPerformanceFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminPerformanceFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigManagerManagementFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigManagerManagementFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminManagementFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigAdminManagementFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigRedemptionFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigRedemptionFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigIssuanceFeeBefore",
+            "type": "u16"
+          },
+          {
+            "name": "vaultConfigIssuanceFeeAfter",
+            "type": "u16"
+          },
+          {
+            "name": "vaultLastUpdatedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4759,6 +5707,114 @@ export type VoltrVault = {
                 62
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "withdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "vaultAssetIdleAtaAmountBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetIdleAtaAmountAfter",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueAfter",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "withdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "vaultLastUpdatedTs",
+            "type": "u64"
           }
         ]
       }

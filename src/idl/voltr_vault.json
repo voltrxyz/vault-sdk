@@ -364,6 +364,103 @@
       "args": []
     },
     {
+      "name": "close_strategy",
+      "discriminator": [
+        56,
+        247,
+        170,
+        246,
+        89,
+        221,
+        134,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "manager",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "strategy_init_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "deposit_strategy",
       "discriminator": [
         246,
@@ -3798,6 +3895,229 @@
       ]
     }
   ],
+  "events": [
+    {
+      "name": "AddAdaptorEvent",
+      "discriminator": [
+        24,
+        181,
+        201,
+        148,
+        240,
+        183,
+        235,
+        12
+      ]
+    },
+    {
+      "name": "CancelRequestWithdrawVaultEvent",
+      "discriminator": [
+        46,
+        165,
+        24,
+        114,
+        1,
+        80,
+        205,
+        136
+      ]
+    },
+    {
+      "name": "CloseStrategyEvent",
+      "discriminator": [
+        213,
+        95,
+        219,
+        161,
+        17,
+        208,
+        93,
+        255
+      ]
+    },
+    {
+      "name": "DepositStrategyEvent",
+      "discriminator": [
+        202,
+        201,
+        118,
+        49,
+        29,
+        180,
+        116,
+        170
+      ]
+    },
+    {
+      "name": "DepositVaultEvent",
+      "discriminator": [
+        11,
+        15,
+        7,
+        92,
+        150,
+        100,
+        165,
+        232
+      ]
+    },
+    {
+      "name": "DirectWithdrawStrategyEvent",
+      "discriminator": [
+        113,
+        202,
+        151,
+        124,
+        137,
+        255,
+        153,
+        101
+      ]
+    },
+    {
+      "name": "HarvestFeeEvent",
+      "discriminator": [
+        69,
+        48,
+        192,
+        23,
+        232,
+        22,
+        23,
+        30
+      ]
+    },
+    {
+      "name": "InitProtocolEvent",
+      "discriminator": [
+        13,
+        81,
+        183,
+        132,
+        88,
+        43,
+        202,
+        213
+      ]
+    },
+    {
+      "name": "InitializeDirectWithdrawStrategyEvent",
+      "discriminator": [
+        169,
+        22,
+        57,
+        8,
+        15,
+        73,
+        255,
+        115
+      ]
+    },
+    {
+      "name": "InitializeStrategyEvent",
+      "discriminator": [
+        30,
+        233,
+        211,
+        249,
+        83,
+        188,
+        234,
+        152
+      ]
+    },
+    {
+      "name": "InitializeVaultEvent",
+      "discriminator": [
+        179,
+        75,
+        50,
+        161,
+        191,
+        28,
+        245,
+        107
+      ]
+    },
+    {
+      "name": "RemoveAdaptorEvent",
+      "discriminator": [
+        155,
+        178,
+        2,
+        29,
+        245,
+        86,
+        246,
+        153
+      ]
+    },
+    {
+      "name": "RequestWithdrawVaultEvent",
+      "discriminator": [
+        59,
+        94,
+        26,
+        38,
+        47,
+        131,
+        158,
+        162
+      ]
+    },
+    {
+      "name": "UpdateProtocolEvent",
+      "discriminator": [
+        14,
+        227,
+        204,
+        217,
+        62,
+        46,
+        241,
+        237
+      ]
+    },
+    {
+      "name": "UpdateVaultEvent",
+      "discriminator": [
+        123,
+        31,
+        27,
+        189,
+        102,
+        1,
+        121,
+        57
+      ]
+    },
+    {
+      "name": "WithdrawStrategyEvent",
+      "discriminator": [
+        112,
+        45,
+        16,
+        172,
+        170,
+        33,
+        22,
+        212
+      ]
+    },
+    {
+      "name": "WithdrawVaultEvent",
+      "discriminator": [
+        196,
+        123,
+        79,
+        215,
+        4,
+        214,
+        20,
+        197
+      ]
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -3938,6 +4258,190 @@
       }
     },
     {
+      "name": "AddAdaptorEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_add_receipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CancelRequestWithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "request_withdraw_vault_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_lp_refunded",
+            "type": "u64"
+          },
+          {
+            "name": "amount_lp_burned",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CloseStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "vault_asset_idle_ata_amount_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_idle_ata_amount_after",
+            "type": "u64"
+          },
+          {
+            "name": "strategy_position_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "strategy_position_value_after",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "vault_last_updated_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "DirectWithdrawInitReceipt",
       "type": {
         "kind": "struct",
@@ -3999,6 +4503,66 @@
               "The bump for the strategy init receipt."
             ],
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DirectWithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "direct_withdraw_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "strategy_position_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "strategy_position_value_after",
+            "type": "u64"
           }
         ]
       }
@@ -4115,6 +4679,42 @@
       }
     },
     {
+      "name": "HarvestFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "protocol",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_lp_admin_fees",
+            "type": "u64"
+          },
+          {
+            "name": "amount_lp_manager_fees",
+            "type": "u64"
+          },
+          {
+            "name": "amount_lp_protocol_fees",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "HighWaterMark",
       "serialization": "bytemuckunsafe",
       "repr": {
@@ -4148,6 +4748,170 @@
                 8
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitProtocolEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "operational_state",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializeDirectWithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "instruction_discriminator",
+            "type": "bytes"
+          },
+          {
+            "name": "additional_args",
+            "type": "bytes"
+          },
+          {
+            "name": "allow_user_args",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializeStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializeVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_name",
+            "type": "string"
+          },
+          {
+            "name": "vault_description",
+            "type": "string"
+          },
+          {
+            "name": "vault_asset_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_idle_ata",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_lp_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_manager",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_config_max_cap",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_start_at_ts",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_locked_profit_degradation_duration",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_withdrawal_waiting_period",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_manager_performance_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_performance_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_manager_management_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_management_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_redemption_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_issuance_fee",
+            "type": "u16"
+          },
+          {
+            "name": "vault_last_updated_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4232,6 +4996,58 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveAdaptorEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_add_receipt",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestWithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "request_withdraw_vault_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_lp_escrowed",
+            "type": "u64"
+          },
+          {
+            "name": "amount_asset_to_withdraw_decimal_bits",
+            "type": "u128"
+          },
+          {
+            "name": "withdrawable_from_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4364,6 +5180,138 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateProtocolEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "protocol",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_before",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_after",
+            "type": "pubkey"
+          },
+          {
+            "name": "operational_state_before",
+            "type": "u16"
+          },
+          {
+            "name": "operational_state_after",
+            "type": "u16"
+          },
+          {
+            "name": "fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "fee_after",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_config_max_cap_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_max_cap_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_start_at_ts_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_start_at_ts_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_locked_profit_degradation_duration_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_locked_profit_degradation_duration_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_withdrawal_waiting_period_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_withdrawal_waiting_period_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_config_manager_performance_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_manager_performance_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_performance_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_performance_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_manager_management_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_manager_management_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_management_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_admin_management_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_redemption_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_redemption_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_issuance_fee_before",
+            "type": "u16"
+          },
+          {
+            "name": "vault_config_issuance_fee_after",
+            "type": "u16"
+          },
+          {
+            "name": "vault_last_updated_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4753,6 +5701,114 @@
                 62
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy_init_receipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptor_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "vault_asset_idle_ata_amount_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_idle_ata_amount_after",
+            "type": "u64"
+          },
+          {
+            "name": "strategy_position_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "strategy_position_value_after",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "vault_last_updated_ts",
+            "type": "u64"
           }
         ]
       }

@@ -1122,6 +1122,48 @@ export class VoltrClient extends AccountUtils {
       .instruction();
   }
 
+  /**
+   * Creates an instruction to close a strategy
+   * @param {Object} params - Parameters for closing strategy
+   * @param {PublicKey} params.payer - Public key of the payer
+   * @param {PublicKey} params.manager - Public key of the manager
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for closing strategy
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createCloseStrategyIx({
+   *   payer: payerPubkey,
+   *   manager: managerPubkey,
+   *   vault: vaultPubkey,
+   *   strategy: strategyPubkey,
+   * });
+   * ```
+   */
+  async createCloseStrategyIx({
+    payer,
+    manager,
+    vault,
+    strategy,
+  }: {
+    payer: PublicKey;
+    manager: PublicKey;
+    vault: PublicKey;
+    strategy: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .closeStrategy()
+      .accounts({
+        payer,
+        manager,
+        vault,
+        strategy,
+      })
+      .instruction();
+  }
+
   // --------------------------------------- Account Fetching All
 
   /**

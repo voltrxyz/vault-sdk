@@ -258,6 +258,7 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `createWithdrawStrategyIx(withdrawArgs, params)`
 - `createInitializeDirectWithdrawStrategyIx(initArgs, params)`
 - `createDirectWithdrawStrategyIx(withdrawArgs, params)`
+- `createCloseStrategyIx(params)`
 - `createRemoveAdaptorIx(params)`
 
 #### Account Data
