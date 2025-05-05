@@ -461,6 +461,129 @@
       "args": []
     },
     {
+      "name": "create_lp_metadata",
+      "discriminator": [
+        148,
+        193,
+        160,
+        116,
+        87,
+        25,
+        123,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "vault_lp_mint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_lp_mint_auth",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "metadata_account",
+          "writable": true
+        },
+        {
+          "name": "metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "deposit_strategy",
       "discriminator": [
         246,
@@ -4146,41 +4269,46 @@
     },
     {
       "code": 6005,
+      "name": "FeeExceedsTotalAssetValue",
+      "msg": "Fee exceeds total asset value."
+    },
+    {
+      "code": 6006,
       "name": "MaxCapExceeded",
       "msg": "Max cap exceeded."
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "VaultNotActive",
       "msg": "Vault not active."
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "ManagerNotAllowed",
       "msg": "Manager not allowed in remaining."
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "OperationNotAllowed",
       "msg": "Operation not allowed."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "AdaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidFeeConfiguration",
       "msg": "Fee configuration invalid."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "WithdrawalNotYetAvailable",
       "msg": "Withdrawal not yet available."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidInput",
       "msg": "Invalid input."
     }
@@ -4626,7 +4754,7 @@
             "type": {
               "array": [
                 "u8",
-                52
+                36
               ]
             }
           }
@@ -4674,6 +4802,32 @@
                 24
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeUpdate",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "last_performance_fee_update_ts",
+            "docs": [
+              "The timestamp when the performance fees were last updated."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_management_fee_update_ts",
+            "docs": [
+              "The timestamp when the management fees were last updated."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -5404,6 +5558,17 @@
             "type": {
               "defined": {
                 "name": "FeeConfiguration"
+              }
+            }
+          },
+          {
+            "name": "fee_update",
+            "docs": [
+              "The fee update state of the vault."
+            ],
+            "type": {
+              "defined": {
+                "name": "FeeUpdate"
               }
             }
           },

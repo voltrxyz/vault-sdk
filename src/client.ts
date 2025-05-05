@@ -14,7 +14,11 @@ import {
 } from "@solana/web3.js";
 import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
-import { LENDING_ADAPTOR_PROGRAM_ID, SEEDS } from "./constants";
+import {
+  LENDING_ADAPTOR_PROGRAM_ID,
+  METADATA_PROGRAM_ID,
+  SEEDS,
+} from "./constants";
 import {
   VaultParams,
   VaultConfig,
@@ -282,6 +286,25 @@ export class VoltrClient extends AccountUtils {
     );
 
     return requestWithdrawVaultReceipt;
+  }
+
+  /**
+   * Finds the LP metadata account for a given vault
+   * @param vault - Public key of the vault
+   * @returns The PDA for the LP metadata account
+   *
+   * @example
+   * ```typescript
+   * const lpMetadataAccount = client.findLpMetadataAccount(vaultPubkey);
+   * ```
+   */
+  findLpMetadataAccount(vault: PublicKey) {
+    const lpMint = this.findVaultLpMint(vault);
+    const [lpMetadataAccount] = PublicKey.findProgramAddressSync(
+      [SEEDS.METADATA, METADATA_PROGRAM_ID.toBuffer(), lpMint.toBuffer()],
+      METADATA_PROGRAM_ID
+    );
+    return lpMetadataAccount;
   }
 
   // --------------------------------------- Vault Instructions
@@ -1164,6 +1187,59 @@ export class VoltrClient extends AccountUtils {
       .instruction();
   }
 
+  /**
+   * Creates an instruction to create LP metadata
+   * @param {Object} createLpMetadataArgs - Parameters for creating LP metadata
+   * @param {string} createLpMetadataArgs.name - Name of the LP
+   * @param {string} createLpMetadataArgs.symbol - Symbol of the LP
+   * @param {string} createLpMetadataArgs.uri - URI of the LP metadata
+   * @param {Object} params - Parameters for creating LP metadata
+   * @param {PublicKey} params.payer - Public key of the payer
+   * @param {PublicKey} params.admin - Public key of the admin
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for creating LP metadata
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createCreateLpMetadataIx({
+   *   name: "My LP",
+   *   symbol: "MYLP",
+   *   uri: "https://mylp.com/metadata",
+   * });
+   * ```
+   */
+  async createCreateLpMetadataIx(
+    {
+      name,
+      symbol,
+      uri,
+    }: {
+      name: string;
+      symbol: string;
+      uri: string;
+    },
+    {
+      payer,
+      admin,
+      vault,
+    }: {
+      payer: PublicKey;
+      admin: PublicKey;
+      vault: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    const metadataAccount = this.findLpMetadataAccount(vault);
+    return await this.vaultProgram.methods
+      .createLpMetadata(name, symbol, uri)
+      .accountsPartial({
+        payer,
+        vault,
+        admin,
+        metadataAccount,
+      })
+      .instruction();
+  }
   // --------------------------------------- Account Fetching All
 
   /**

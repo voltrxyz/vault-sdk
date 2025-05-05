@@ -467,6 +467,129 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "createLpMetadata",
+      "discriminator": [
+        148,
+        193,
+        160,
+        116,
+        87,
+        25,
+        123,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "vaultLpMint",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vaultLpMintAuth",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "metadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "depositStrategy",
       "discriminator": [
         246,
@@ -4152,41 +4275,46 @@ export type VoltrVault = {
     },
     {
       "code": 6005,
+      "name": "feeExceedsTotalAssetValue",
+      "msg": "Fee exceeds total asset value."
+    },
+    {
+      "code": 6006,
       "name": "maxCapExceeded",
       "msg": "Max cap exceeded."
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "vaultNotActive",
       "msg": "Vault not active."
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "managerNotAllowed",
       "msg": "Manager not allowed in remaining."
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "operationNotAllowed",
       "msg": "Operation not allowed."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "adaptorEpochInvalid",
       "msg": "Adaptor epoch invalid."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "invalidFeeConfiguration",
       "msg": "Fee configuration invalid."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "withdrawalNotYetAvailable",
       "msg": "Withdrawal not yet available."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "invalidInput",
       "msg": "Invalid input."
     }
@@ -4632,7 +4760,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                52
+                36
               ]
             }
           }
@@ -4680,6 +4808,32 @@ export type VoltrVault = {
                 24
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "feeUpdate",
+      "serialization": "bytemuckunsafe",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastPerformanceFeeUpdateTs",
+            "docs": [
+              "The timestamp when the performance fees were last updated."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastManagementFeeUpdateTs",
+            "docs": [
+              "The timestamp when the management fees were last updated."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -5410,6 +5564,17 @@ export type VoltrVault = {
             "type": {
               "defined": {
                 "name": "feeConfiguration"
+              }
+            }
+          },
+          {
+            "name": "feeUpdate",
+            "docs": [
+              "The fee update state of the vault."
+            ],
+            "type": {
+              "defined": {
+                "name": "feeUpdate"
               }
             }
           },

@@ -249,6 +249,7 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 - `createCancelRequestWithdrawVaultIx(params)`
 - `createWithdrawVaultIx(params)`
 - `createHarvestFeeIx(params)`
+- `createCreateLpMetadataIx(createLpMetadataArgs, params)`
 
 #### Strategy Management
 

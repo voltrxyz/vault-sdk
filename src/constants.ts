@@ -12,6 +12,10 @@ export const DRIFT_ADAPTOR_PROGRAM_ID = new PublicKey(
   "EBN93eXs5fHGBABuajQqdsKRkCgaqtJa8vEFD6vKXiP"
 );
 
+export const METADATA_PROGRAM_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+);
+
 export const SEEDS = {
   PROTOCOL: Buffer.from("protocol"),
   VAULT_LP_MINT: Buffer.from("vault_lp_mint"),
@@ -27,4 +31,5 @@ export const SEEDS = {
   REQUEST_WITHDRAW_VAULT_RECEIPT: Buffer.from("request_withdraw_vault_receipt"),
   // TODO: Remove this
   STRATEGY: Buffer.from("strategy"),
+  METADATA: Buffer.from("metadata"),
 };
