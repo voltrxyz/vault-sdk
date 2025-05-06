@@ -452,12 +452,16 @@ export class VoltrClient extends AccountUtils {
       admin: PublicKey;
     }
   ): Promise<TransactionInstruction> {
+    const lpMint = this.findVaultLpMint(vault);
     return await this.vaultProgram.methods
       .updateVault(vaultConfig)
       .accountsPartial({
         admin,
         vault,
       })
+      .remainingAccounts([
+        { pubkey: lpMint, isSigner: false, isWritable: false },
+      ])
       .instruction();
   }
 
