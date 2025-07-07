@@ -10,6 +10,6 @@
     "categorizeByGroup": true,
     "categoryOrder": ["Client", "Instructions", "PDAs", "Accounts", "Types", "*"],
     "navigationLinks": {
-      "GitHub": "https://github.com/jakeyvee/voltr-sdk"
+      "GitHub": "https://github.com/voltrxyz/vault-sdk"
     }
   }
