@@ -7,6 +7,7 @@ import {
 } from "@coral-xyz/anchor";
 import BN from "bn.js";
 import {
+  ConfirmOptions,
   Connection,
   Keypair,
   PublicKey,
@@ -103,7 +104,7 @@ export class VoltrClient extends AccountUtils {
    * @param conn - Solana connection instance
    * @param wallet - Optional keypair for signing transactions
    */
-  constructor(conn: Connection, wallet?: Keypair) {
+  constructor(conn: Connection, wallet?: Keypair, opts?: ConfirmOptions) {
     super(conn);
 
     // Initialize programs
@@ -111,7 +112,7 @@ export class VoltrClient extends AccountUtils {
     this.setPrograms(vaultIdl as any);
   }
 
-  private setProvider(wallet?: Keypair) {
+  private setProvider(wallet?: Keypair, opts?: ConfirmOptions) {
     /// we are creating instructions with this client without signing
     let kp: Keypair;
     if (!wallet) {
@@ -132,7 +133,7 @@ export class VoltrClient extends AccountUtils {
     this.provider = new AnchorProvider(
       this.conn,
       new CustomWallet(kp),
-      AnchorProvider.defaultOptions()
+      opts ?? AnchorProvider.defaultOptions()
     );
     setProvider(this.provider);
   }
@@ -1330,7 +1331,7 @@ export class VoltrClient extends AccountUtils {
    * @returns Promise resolving to the vault account data
    */
   async fetchVaultAccount(vault: PublicKey) {
-    return await this.vaultProgram.account.vault.fetch(vault, "confirmed");
+    return await this.vaultProgram.account.vault.fetch(vault);
   }
 
   /**
@@ -1345,8 +1346,7 @@ export class VoltrClient extends AccountUtils {
    */
   async fetchStrategyInitReceiptAccount(strategyInitReceipt: PublicKey) {
     return await this.vaultProgram.account.strategyInitReceipt.fetch(
-      strategyInitReceipt,
-      "confirmed"
+      strategyInitReceipt
     );
   }
 
@@ -1362,8 +1362,7 @@ export class VoltrClient extends AccountUtils {
    */
   async fetchAdaptorAddReceiptAccount(adaptorAddReceipt: PublicKey) {
     return await this.vaultProgram.account.adaptorAddReceipt.fetch(
-      adaptorAddReceipt,
-      "confirmed"
+      adaptorAddReceipt
     );
   }
 
@@ -1381,8 +1380,7 @@ export class VoltrClient extends AccountUtils {
     requestWithdrawVaultReceipt: PublicKey
   ) {
     return await this.vaultProgram.account.requestWithdrawVaultReceipt.fetch(
-      requestWithdrawVaultReceipt,
-      "confirmed"
+      requestWithdrawVaultReceipt
     );
   }
 
@@ -1459,9 +1457,11 @@ export class VoltrClient extends AccountUtils {
   async getCurrentAssetPerLpForVault(vault: PublicKey) {
     const vaultLpMint = this.findVaultLpMint(vault);
     const vaultAccount = await this.fetchVaultAccount(vault);
-    const lpSupply = await getMint(this.conn, vaultLpMint).then(
-      (lp) => new BN(lp.supply.toString())
-    );
+    const lpSupply = await getMint(
+      this.conn,
+      vaultLpMint,
+      this.provider.opts.commitment
+    ).then((lp) => new BN(lp.supply.toString()));
     const unharvestedFeesLp = vaultAccount.feeState.accumulatedLpAdminFees
       .add(vaultAccount.feeState.accumulatedLpManagerFees)
       .add(vaultAccount.feeState.accumulatedLpProtocolFees);
@@ -1562,7 +1562,7 @@ export class VoltrClient extends AccountUtils {
   async getPendingWithdrawalForUser(vault: PublicKey, user: PublicKey) {
     const [vaultAccount, lp] = await Promise.all([
       this.fetchVaultAccount(vault),
-      getMint(this.conn, this.findVaultLpMint(vault)),
+      getMint(this.conn, this.findVaultLpMint(vault), this.provider.opts.commitment),
     ]);
 
     const requestWithdrawVaultReceiptAddress =
@@ -1592,7 +1592,7 @@ export class VoltrClient extends AccountUtils {
     const [requestWithdrawVaultReceipts, vaultAccount, lp] = await Promise.all([
       this.fetchAllRequestWithdrawVaultReceiptsOfVault(vault),
       this.fetchVaultAccount(vault),
-      getMint(this.conn, this.findVaultLpMint(vault)),
+      getMint(this.conn, this.findVaultLpMint(vault), this.provider.opts.commitment),
     ]);
 
     const lpSupply = new BN(lp.supply.toString());
@@ -1685,7 +1685,7 @@ export class VoltrClient extends AccountUtils {
     try {
       const vault = await this.fetchVaultAccount(vaultPk);
       const lpMint = this.findVaultLpMint(vaultPk);
-      const lp = await getMint(this.conn, lpMint);
+      const lp = await getMint(this.conn, lpMint, this.provider.opts.commitment);
 
       const amount = this.calculateAssetsForWithdrawHelper(
         vault.asset.totalValue,
@@ -1738,7 +1738,7 @@ export class VoltrClient extends AccountUtils {
       const totalUnlockedValue = totalValue.sub(lockedProfit);
 
       const lpMint = this.findVaultLpMint(vaultPk);
-      const lp = await getMint(this.conn, lpMint);
+      const lp = await getMint(this.conn, lpMint, this.provider.opts.commitment);
       const lpSupply = new BN(lp.supply.toString());
 
       // Validate inputs
@@ -1791,7 +1791,7 @@ export class VoltrClient extends AccountUtils {
     const vault = await this.fetchVaultAccount(vaultPk);
     const totalValue = vault.asset.totalValue;
     const lpMint = this.findVaultLpMint(vaultPk);
-    const lp = await getMint(this.conn, lpMint);
+    const lp = await getMint(this.conn, lpMint, this.provider.opts.commitment);
     const lpSupply = new BN(lp.supply.toString());
 
     const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
@@ -1801,7 +1801,7 @@ export class VoltrClient extends AccountUtils {
 
     // If the pool is empty, mint LP tokens 1:1 with deposit
     if (lpSupplyInclFees.eq(new BN(0))) {
-      const assetMint = await getMint(this.conn, vault.asset.mint);
+      const assetMint = await getMint(this.conn, vault.asset.mint, this.provider.opts.commitment);
       const assetDecimals = assetMint.decimals;
       const lpDecimals = lp.decimals;
       return assetAmount
