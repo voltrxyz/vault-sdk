@@ -107,6 +107,83 @@
       "args": []
     },
     {
+      "name": "calibrate_high_water_mark",
+      "discriminator": [
+        178,
+        116,
+        38,
+        9,
+        23,
+        20,
+        91,
+        154
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancel_request_withdraw_vault",
       "discriminator": [
         231,
@@ -4033,6 +4110,19 @@
       ]
     },
     {
+      "name": "CalibrateHighWaterMarkEvent",
+      "discriminator": [
+        140,
+        76,
+        195,
+        144,
+        180,
+        178,
+        0,
+        155
+      ]
+    },
+    {
       "name": "CancelRequestWithdrawVaultEvent",
       "discriminator": [
         46,
@@ -4391,6 +4481,10 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4401,6 +4495,50 @@
           {
             "name": "adaptor_add_receipt",
             "type": "pubkey"
+          },
+          {
+            "name": "adaptor_last_updated_ts",
+            "type": "u64"
+          },
+          {
+            "name": "added_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CalibrateHighWaterMarkEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
+          },
+          {
+            "name": "calibrated_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4437,6 +4575,10 @@
           {
             "name": "vault_highest_asset_per_lp_decimal_bits_after",
             "type": "u128"
+          },
+          {
+            "name": "cancelled_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4446,6 +4588,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4457,6 +4603,10 @@
           {
             "name": "strategy_init_receipt",
             "type": "pubkey"
+          },
+          {
+            "name": "closed_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4466,6 +4616,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4481,6 +4635,14 @@
           {
             "name": "adaptor_program",
             "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_amount_asset_deposited",
+            "type": "u64"
           },
           {
             "name": "vault_asset_total_value_before",
@@ -4521,6 +4683,10 @@
           {
             "name": "strategy_position_value_after",
             "type": "u64"
+          },
+          {
+            "name": "deposited_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4531,11 +4697,23 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "user_amount_asset_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "user_amount_lp_minted",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
           {
-            "name": "user",
+            "name": "vault_asset_mint",
             "type": "pubkey"
           },
           {
@@ -4563,7 +4741,7 @@
             "type": "u128"
           },
           {
-            "name": "vault_last_updated_ts",
+            "name": "deposited_ts",
             "type": "u64"
           }
         ]
@@ -4641,6 +4819,18 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "user_amount_asset_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "user_amount_lp_burned",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4659,6 +4849,14 @@
           {
             "name": "adaptor_program",
             "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_unlocked_before",
+            "type": "u64"
           },
           {
             "name": "vault_asset_total_value_before",
@@ -4690,6 +4888,10 @@
           },
           {
             "name": "strategy_position_value_after",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn_ts",
             "type": "u64"
           }
         ]
@@ -4838,6 +5040,10 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "harvester",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4922,6 +5128,10 @@
           {
             "name": "fee",
             "type": "u16"
+          },
+          {
+            "name": "initialized_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4931,6 +5141,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4958,6 +5172,10 @@
           {
             "name": "allow_user_args",
             "type": "bool"
+          },
+          {
+            "name": "initialized_ts",
+            "type": "u64"
           }
         ]
       }
@@ -4968,7 +5186,15 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_strategy_auth",
             "type": "pubkey"
           },
           {
@@ -4982,6 +5208,14 @@
           {
             "name": "adaptor_program",
             "type": "pubkey"
+          },
+          {
+            "name": "initialized_ts",
+            "type": "u64"
+          },
+          {
+            "name": "is_initialized",
+            "type": "bool"
           }
         ]
       }
@@ -4991,6 +5225,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -5064,7 +5302,7 @@
             "type": "u16"
           },
           {
-            "name": "vault_last_updated_ts",
+            "name": "initialized_ts",
             "type": "u64"
           }
         ]
@@ -5160,6 +5398,10 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -5170,6 +5412,10 @@
           {
             "name": "adaptor_add_receipt",
             "type": "pubkey"
+          },
+          {
+            "name": "removed_ts",
+            "type": "u64"
           }
         ]
       }
@@ -5188,6 +5434,18 @@
             "type": "pubkey"
           },
           {
+            "name": "requested_amount",
+            "type": "u64"
+          },
+          {
+            "name": "is_amount_in_lp",
+            "type": "bool"
+          },
+          {
+            "name": "is_withdraw_all",
+            "type": "bool"
+          },
+          {
             "name": "request_withdraw_vault_receipt",
             "type": "pubkey"
           },
@@ -5201,6 +5459,26 @@
           },
           {
             "name": "withdrawable_from_ts",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_unlocked",
+            "type": "u64"
+          },
+          {
+            "name": "vault_asset_total_value",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees",
+            "type": "u64"
+          },
+          {
+            "name": "requested_ts",
             "type": "u64"
           }
         ]
@@ -5370,6 +5648,10 @@
           {
             "name": "fee_after",
             "type": "u16"
+          },
+          {
+            "name": "updated_ts",
+            "type": "u64"
           }
         ]
       }
@@ -5379,6 +5661,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -5464,7 +5750,7 @@
             "type": "u16"
           },
           {
-            "name": "vault_last_updated_ts",
+            "name": "updated_ts",
             "type": "u64"
           }
         ]
@@ -5876,6 +6162,10 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -5890,6 +6180,14 @@
           {
             "name": "adaptor_program",
             "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_amount_asset_withdrawn",
+            "type": "u64"
           },
           {
             "name": "vault_asset_total_value_before",
@@ -5930,6 +6228,10 @@
           {
             "name": "strategy_position_value_after",
             "type": "u64"
+          },
+          {
+            "name": "withdrawn_ts",
+            "type": "u64"
           }
         ]
       }
@@ -5940,12 +6242,28 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "user_amount_asset_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "user_amount_lp_burned",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
           {
-            "name": "user",
+            "name": "vault_asset_mint",
             "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value_unlocked_before",
+            "type": "u64"
           },
           {
             "name": "vault_asset_total_value_before",
@@ -5972,7 +6290,7 @@
             "type": "u128"
           },
           {
-            "name": "vault_last_updated_ts",
+            "name": "withdrawn_ts",
             "type": "u64"
           }
         ]

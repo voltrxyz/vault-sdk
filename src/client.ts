@@ -1193,6 +1193,38 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Creates an instruction to calibrate the high water mark
+   * @param {Object} params - Parameters for calibrating the high water mark
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.admin - Public key of the admin
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for calibrating the high water mark
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createCalibrateHighWaterMarkIx({
+   *   vault: vaultPubkey,
+   *   admin: adminPubkey,
+   * });
+   * ```
+   */
+  async createCalibrateHighWaterMarkIx({
+    vault,
+    admin,
+  }: {
+    vault: PublicKey;
+    admin: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .calibrateHighWaterMark()
+      .accountsPartial({
+        vault,
+        admin,
+      })
+      .instruction();
+  }
+
+  /**
    * Creates an instruction to create LP metadata
    * @param {Object} createLpMetadataArgs - Parameters for creating LP metadata
    * @param {string} createLpMetadataArgs.name - Name of the LP

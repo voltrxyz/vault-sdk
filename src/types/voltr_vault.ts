@@ -113,6 +113,83 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "calibrateHighWaterMark",
+      "discriminator": [
+        178,
+        116,
+        38,
+        9,
+        23,
+        20,
+        91,
+        154
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancelRequestWithdrawVault",
       "discriminator": [
         231,
@@ -4039,6 +4116,19 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "calibrateHighWaterMarkEvent",
+      "discriminator": [
+        140,
+        76,
+        195,
+        144,
+        180,
+        178,
+        0,
+        155
+      ]
+    },
+    {
       "name": "cancelRequestWithdrawVaultEvent",
       "discriminator": [
         46,
@@ -4397,6 +4487,10 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4407,6 +4501,50 @@ export type VoltrVault = {
           {
             "name": "adaptorAddReceipt",
             "type": "pubkey"
+          },
+          {
+            "name": "adaptorLastUpdatedTs",
+            "type": "u64"
+          },
+          {
+            "name": "addedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "calibrateHighWaterMarkEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValue",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFees",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "calibratedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4443,6 +4581,10 @@ export type VoltrVault = {
           {
             "name": "vaultHighestAssetPerLpDecimalBitsAfter",
             "type": "u128"
+          },
+          {
+            "name": "cancelledTs",
+            "type": "u64"
           }
         ]
       }
@@ -4452,6 +4594,10 @@ export type VoltrVault = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4463,6 +4609,10 @@ export type VoltrVault = {
           {
             "name": "strategyInitReceipt",
             "type": "pubkey"
+          },
+          {
+            "name": "closedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4472,6 +4622,10 @@ export type VoltrVault = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "manager",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4487,6 +4641,14 @@ export type VoltrVault = {
           {
             "name": "adaptorProgram",
             "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAmountAssetDeposited",
+            "type": "u64"
           },
           {
             "name": "vaultAssetTotalValueBefore",
@@ -4527,6 +4689,10 @@ export type VoltrVault = {
           {
             "name": "strategyPositionValueAfter",
             "type": "u64"
+          },
+          {
+            "name": "depositedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4537,11 +4703,23 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "userAmountAssetDeposited",
+            "type": "u64"
+          },
+          {
+            "name": "userAmountLpMinted",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
           {
-            "name": "user",
+            "name": "vaultAssetMint",
             "type": "pubkey"
           },
           {
@@ -4569,7 +4747,7 @@ export type VoltrVault = {
             "type": "u128"
           },
           {
-            "name": "vaultLastUpdatedTs",
+            "name": "depositedTs",
             "type": "u64"
           }
         ]
@@ -4647,6 +4825,18 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "userAmountAssetWithdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "userAmountLpBurned",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4665,6 +4855,14 @@ export type VoltrVault = {
           {
             "name": "adaptorProgram",
             "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueUnlockedBefore",
+            "type": "u64"
           },
           {
             "name": "vaultAssetTotalValueBefore",
@@ -4696,6 +4894,10 @@ export type VoltrVault = {
           },
           {
             "name": "strategyPositionValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawnTs",
             "type": "u64"
           }
         ]
@@ -4844,6 +5046,10 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "harvester",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -4928,6 +5134,10 @@ export type VoltrVault = {
           {
             "name": "fee",
             "type": "u16"
+          },
+          {
+            "name": "initializedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4937,6 +5147,10 @@ export type VoltrVault = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -4964,6 +5178,10 @@ export type VoltrVault = {
           {
             "name": "allowUserArgs",
             "type": "bool"
+          },
+          {
+            "name": "initializedTs",
+            "type": "u64"
           }
         ]
       }
@@ -4974,7 +5192,15 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultStrategyAuth",
             "type": "pubkey"
           },
           {
@@ -4988,6 +5214,14 @@ export type VoltrVault = {
           {
             "name": "adaptorProgram",
             "type": "pubkey"
+          },
+          {
+            "name": "initializedTs",
+            "type": "u64"
+          },
+          {
+            "name": "isInitialized",
+            "type": "bool"
           }
         ]
       }
@@ -4997,6 +5231,10 @@ export type VoltrVault = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -5070,7 +5308,7 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
-            "name": "vaultLastUpdatedTs",
+            "name": "initializedTs",
             "type": "u64"
           }
         ]
@@ -5166,6 +5404,10 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -5176,6 +5418,10 @@ export type VoltrVault = {
           {
             "name": "adaptorAddReceipt",
             "type": "pubkey"
+          },
+          {
+            "name": "removedTs",
+            "type": "u64"
           }
         ]
       }
@@ -5194,6 +5440,18 @@ export type VoltrVault = {
             "type": "pubkey"
           },
           {
+            "name": "requestedAmount",
+            "type": "u64"
+          },
+          {
+            "name": "isAmountInLp",
+            "type": "bool"
+          },
+          {
+            "name": "isWithdrawAll",
+            "type": "bool"
+          },
+          {
             "name": "requestWithdrawVaultReceipt",
             "type": "pubkey"
           },
@@ -5207,6 +5465,26 @@ export type VoltrVault = {
           },
           {
             "name": "withdrawableFromTs",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueUnlocked",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValue",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFees",
+            "type": "u64"
+          },
+          {
+            "name": "requestedTs",
             "type": "u64"
           }
         ]
@@ -5376,6 +5654,10 @@ export type VoltrVault = {
           {
             "name": "feeAfter",
             "type": "u16"
+          },
+          {
+            "name": "updatedTs",
+            "type": "u64"
           }
         ]
       }
@@ -5385,6 +5667,10 @@ export type VoltrVault = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
           {
             "name": "vault",
             "type": "pubkey"
@@ -5470,7 +5756,7 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
-            "name": "vaultLastUpdatedTs",
+            "name": "updatedTs",
             "type": "u64"
           }
         ]
@@ -5882,6 +6168,10 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "manager",
+            "type": "pubkey"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
@@ -5896,6 +6186,14 @@ export type VoltrVault = {
           {
             "name": "adaptorProgram",
             "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAmountAssetWithdrawn",
+            "type": "u64"
           },
           {
             "name": "vaultAssetTotalValueBefore",
@@ -5936,6 +6234,10 @@ export type VoltrVault = {
           {
             "name": "strategyPositionValueAfter",
             "type": "u64"
+          },
+          {
+            "name": "withdrawnTs",
+            "type": "u64"
           }
         ]
       }
@@ -5946,12 +6248,28 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "userAmountAssetWithdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "userAmountLpBurned",
+            "type": "u64"
+          },
+          {
             "name": "vault",
             "type": "pubkey"
           },
           {
-            "name": "user",
+            "name": "vaultAssetMint",
             "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueUnlockedBefore",
+            "type": "u64"
           },
           {
             "name": "vaultAssetTotalValueBefore",
@@ -5978,7 +6296,7 @@ export type VoltrVault = {
             "type": "u128"
           },
           {
-            "name": "vaultLastUpdatedTs",
+            "name": "withdrawnTs",
             "type": "u64"
           }
         ]
