@@ -108,7 +108,7 @@ export class VoltrClient extends AccountUtils {
     super(conn);
 
     // Initialize programs
-    this.setProvider(wallet);
+    this.setProvider(wallet, opts);
     this.setPrograms(vaultIdl as any);
   }
 
