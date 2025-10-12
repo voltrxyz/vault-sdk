@@ -29,6 +29,7 @@ import {
   WithdrawStrategyArgs,
   InitializeDirectWithdrawStrategyArgs,
   RequestWithdrawVaultArgs,
+  VaultConfigField,
 } from "./types";
 
 // Import IDL files
@@ -416,6 +417,10 @@ export class VoltrClient extends AccountUtils {
 
   /**
    * Creates an instruction to update a vault
+   *
+   * @deprecated Since version 1.0.14. Use `createUpdateVaultConfigIx` instead for more granular configuration updates.
+   * This method will be removed in a future version.
+   *
    * @param {VaultConfig} vaultConfig - Configuration parameters for the vault
    * @param {BN} vaultConfig.maxCap - Maximum capacity of the vault
    * @param {BN} vaultConfig.startAtTs - Vault start timestamp in seconds
@@ -430,6 +435,7 @@ export class VoltrClient extends AccountUtils {
    *
    * @example
    * ```typescript
+   * // DEPRECATED - Use createUpdateVaultConfigIx instead
    * const ix = await client.createUpdateVaultIx(
    *   {
    *     maxCap: new BN('1000000000'),
@@ -439,6 +445,15 @@ export class VoltrClient extends AccountUtils {
    *     adminManagementFee: 50,
    *     adminPerformanceFee: 1000,
    *   },
+   *   { vault: vaultPubkey, admin: adminPubkey }
+   * );
+   *
+   * // NEW WAY - Update individual fields:
+   * const newMaxCap = new BN('1000000000');
+   * const data = newMaxCap.toArrayLike(Buffer, 'le', 8);
+   * const ix = await client.createUpdateVaultConfigIx(
+   *   VaultConfigField.MaxCap,
+   *   data,
    *   { vault: vaultPubkey, admin: adminPubkey }
    * );
    * ```
@@ -463,6 +478,135 @@ export class VoltrClient extends AccountUtils {
       .remainingAccounts([
         { pubkey: lpMint, isSigner: false, isWritable: false },
       ])
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to update a specific vault configuration field
+   *
+   * @param {VaultConfigField} field - The configuration field to update
+   * @param {Buffer} data - The serialized data for the new value
+   * @param {Object} params - Parameters for updating the vault config
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.admin - Public key of the vault admin
+   * @param {PublicKey} [params.vaultLpMint] - Required when updating management fees
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for updating the vault config
+   *
+   * @throws {Error} If the field requires LP mint but it's not provided
+   *
+   * @example Update max cap
+   * ```typescript
+   * const newMaxCap = new BN(20_000_000_000_000);
+   * const data = newMaxCap.toArrayLike(Buffer, "le", 8);
+   *
+   * const ix = await client.createUpdateVaultConfigIx(
+   *   VaultConfigField.MaxCap,
+   *   data,
+   *   {
+   *     vault: vaultPubkey,
+   *     admin: adminPubkey
+   *   }
+   * );
+   * ```
+   *
+   * @example Update manager management fee (requires LP mint)
+   * ```typescript
+   * const newManagerManagementFee = 1000; // 10%
+   * const data = Buffer.alloc(2);
+   * data.writeUInt16LE(newManagerManagementFee, 0);
+   *
+   * const vaultLpMint = client.findVaultLpMint(vaultPubkey);
+   *
+   * const ix = await client.createUpdateVaultConfigIx(
+   *   VaultConfigField.ManagerManagementFee,
+   *   data,
+   *   {
+   *     vault: vaultPubkey,
+   *     admin: adminPubkey,
+   *     vaultLpMint: vaultLpMint
+   *   }
+   * );
+   * ```
+   *
+   * @example Update manager (requires Pubkey)
+   * ```typescript
+   * const newManager = new PublicKey('...');
+   * const data = newManager.toBuffer();
+   *
+   * const ix = await client.createUpdateVaultConfigIx(
+   *   VaultConfigField.Manager,
+   *   data,
+   *   {
+   *     vault: vaultPubkey,
+   *     admin: adminPubkey
+   *   }
+   * );
+   * ```
+   */
+  async createUpdateVaultConfigIx(
+    field: VaultConfigField,
+    data: Buffer,
+    {
+      vault,
+      admin,
+      vaultLpMint,
+    }: {
+      vault: PublicKey;
+      admin: PublicKey;
+      vaultLpMint?: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    // Check if LP mint is required for this field
+    const requiresLpMint =
+      field === VaultConfigField.ManagerManagementFee ||
+      field === VaultConfigField.AdminManagementFee;
+
+    if (requiresLpMint && !vaultLpMint) {
+      throw new Error(
+        `LP mint is required when updating ${field}. Please provide vaultLpMint parameter.`
+      );
+    }
+
+    // Build remaining accounts array
+    const remainingAccounts = [];
+    if (requiresLpMint && vaultLpMint) {
+      remainingAccounts.push({
+        pubkey: vaultLpMint,
+        isSigner: false,
+        isWritable: false,
+      });
+    }
+
+    const fieldToVariant = {
+      [VaultConfigField.MaxCap]: { maxCap: {} },
+      [VaultConfigField.StartAtTs]: { startAtTs: {} },
+      [VaultConfigField.LockedProfitDegradationDuration]: {
+        lockedProfitDegradationDuration: {},
+      },
+      [VaultConfigField.WithdrawalWaitingPeriod]: {
+        withdrawalWaitingPeriod: {},
+      },
+      [VaultConfigField.ManagerPerformanceFee]: { managerPerformanceFee: {} },
+      [VaultConfigField.AdminPerformanceFee]: { adminPerformanceFee: {} },
+      [VaultConfigField.ManagerManagementFee]: { managerManagementFee: {} },
+      [VaultConfigField.AdminManagementFee]: { adminManagementFee: {} },
+      [VaultConfigField.RedemptionFee]: { redemptionFee: {} },
+      [VaultConfigField.IssuanceFee]: { issuanceFee: {} },
+      [VaultConfigField.Manager]: { manager: {} },
+    };
+
+    const fieldVariant = fieldToVariant[field];
+    if (!fieldVariant) {
+      throw new Error(`Unknown vault config field: ${field}`);
+    }
+
+    return await this.vaultProgram.methods
+      .updateVaultConfig(fieldVariant, data)
+      .accountsPartial({
+        admin,
+        vault,
+      })
+      .remainingAccounts(remainingAccounts)
       .instruction();
   }
 

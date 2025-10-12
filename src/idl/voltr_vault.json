@@ -2,7 +2,7 @@
   "address": "vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8",
   "metadata": {
     "name": "voltr_vault",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -3275,6 +3275,70 @@
       ]
     },
     {
+      "name": "update_vault_config",
+      "discriminator": [
+        122,
+        3,
+        21,
+        222,
+        158,
+        255,
+        238,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "field",
+          "type": {
+            "defined": {
+              "name": "VaultConfigField"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
       "name": "withdraw_strategy",
       "discriminator": [
         31,
@@ -4292,6 +4356,19 @@
       ]
     },
     {
+      "name": "UpdateVaultConfigEvent",
+      "discriminator": [
+        61,
+        92,
+        206,
+        151,
+        162,
+        40,
+        237,
+        103
+      ]
+    },
+    {
       "name": "UpdateVaultEvent",
       "discriminator": [
         123,
@@ -4401,6 +4478,11 @@
       "code": 6013,
       "name": "InvalidInput",
       "msg": "Invalid input."
+    },
+    {
+      "code": 6014,
+      "name": "DivisionByZero",
+      "msg": "Division by zero."
     }
   ],
   "types": [
@@ -5657,6 +5739,38 @@
       }
     },
     {
+      "name": "UpdateVaultConfigEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "old_value",
+            "type": "string"
+          },
+          {
+            "name": "new_value",
+            "type": "string"
+          },
+          {
+            "name": "updated_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "UpdateVaultEvent",
       "type": {
         "kind": "struct",
@@ -5977,6 +6091,47 @@
                 95
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultConfigField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MaxCap"
+          },
+          {
+            "name": "StartAtTs"
+          },
+          {
+            "name": "LockedProfitDegradationDuration"
+          },
+          {
+            "name": "WithdrawalWaitingPeriod"
+          },
+          {
+            "name": "ManagerPerformanceFee"
+          },
+          {
+            "name": "AdminPerformanceFee"
+          },
+          {
+            "name": "ManagerManagementFee"
+          },
+          {
+            "name": "AdminManagementFee"
+          },
+          {
+            "name": "RedemptionFee"
+          },
+          {
+            "name": "IssuanceFee"
+          },
+          {
+            "name": "Manager"
           }
         ]
       }

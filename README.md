@@ -64,6 +64,86 @@ const ix = await client.createInitializeVaultIx(vaultParams, {
 });
 ```
 
+### Update Vault Configuration
+
+```typescript
+import { VaultConfigField } from "@voltr/vault-sdk";
+
+// Update max cap
+const maxCapData = client.serializeU64(new BN(20_000_000_000_000));
+const maxCapIx = await client.createUpdateVaultConfigIx(
+  VaultConfigField.MaxCap,
+  maxCapData,
+  {
+    vault: vaultPubkey,
+    admin: adminPubkey,
+  }
+);
+
+// Update withdrawal waiting period
+const waitingPeriodData = client.serializeU64(new BN(5_000));
+const waitingPeriodIx = await client.createUpdateVaultConfigIx(
+  VaultConfigField.WithdrawalWaitingPeriod,
+  waitingPeriodData,
+  {
+    vault: vaultPubkey,
+    admin: adminPubkey,
+  }
+);
+
+// Update manager management fee (requires LP mint)
+const vaultLpMint = client.findVaultLpMint(vaultPubkey);
+const feeData = client.serializeU16(1000); // 10%
+const feeIx = await client.createUpdateVaultConfigIx(
+  VaultConfigField.ManagerManagementFee,
+  feeData,
+  {
+    vault: vaultPubkey,
+    admin: adminPubkey,
+    vaultLpMint: vaultLpMint,
+  }
+);
+
+// Update issuance fee
+const issuanceFeeData = client.serializeU16(75); // 0.75%
+const issuanceFeeIx = await client.createUpdateVaultConfigIx(
+  VaultConfigField.IssuanceFee,
+  issuanceFeeData,
+  {
+    vault: vaultPubkey,
+    admin: adminPubkey,
+  }
+);
+
+// Update vault manager
+const newManager = new PublicKey("...");
+const managerData = client.serializePubkey(newManager);
+const managerIx = await client.createUpdateVaultConfigIx(
+  VaultConfigField.Manager,
+  managerData,
+  {
+    vault: vaultPubkey,
+    admin: adminPubkey,
+  }
+);
+```
+
+#### Available Vault Config Fields
+
+- `VaultConfigField.MaxCap` - Maximum vault capacity (u64)
+- `VaultConfigField.StartAtTs` - Vault start timestamp (u64)
+- `VaultConfigField.LockedProfitDegradationDuration` - Locked profit degradation duration (u64)
+- `VaultConfigField.WithdrawalWaitingPeriod` - Withdrawal waiting period (u64)
+- `VaultConfigField.ManagerPerformanceFee` - Manager performance fee in BPS (u16)
+- `VaultConfigField.AdminPerformanceFee` - Admin performance fee in BPS (u16)
+- `VaultConfigField.ManagerManagementFee` - Manager management fee in BPS (u16, requires LP mint)
+- `VaultConfigField.AdminManagementFee` - Admin management fee in BPS (u16, requires LP mint)
+- `VaultConfigField.RedemptionFee` - Redemption fee in BPS (u16)
+- `VaultConfigField.IssuanceFee` - Issuance fee in BPS (u16)
+- `VaultConfigField.Manager` - Vault manager (PublicKey)
+
+> **Note:** When updating `ManagerManagementFee` or `AdminManagementFee`, you must provide the `vaultLpMint` parameter as these operations charge management fees and require reading the LP mint supply.
+
 ### Strategy Management
 
 ```typescript
@@ -234,6 +314,67 @@ pendingWithdrawals.forEach((withdrawal, index) => {
     );
   }
 });
+
+// Get pending withdrawal for a specific user
+const userWithdrawal = await client.getPendingWithdrawalForUser(
+  vaultPubkey,
+  userPubkey
+);
+console.log(`User withdrawal amount: ${userWithdrawal.amountAssetToWithdrawEffective}`);
+```
+
+### Fee Management
+
+```typescript
+// Calibrate high water mark (admin only)
+const calibrateIx = await client.createCalibrateHighWaterMarkIx({
+  vault: vaultPubkey,
+  admin: adminPubkey,
+});
+
+// Get current high water mark
+const highWaterMark = await client.getHighWaterMarkForVault(vaultPubkey);
+console.log(`Highest asset per LP: ${highWaterMark.highestAssetPerLp}`);
+console.log(
+  `Last updated: ${new Date(highWaterMark.lastUpdatedTs * 1000).toLocaleString()}`
+);
+
+// Get current asset per LP
+const currentAssetPerLp =
+  await client.getCurrentAssetPerLpForVault(vaultPubkey);
+console.log(`Current asset per LP: ${currentAssetPerLp}`);
+
+// Harvest accumulated fees
+const harvestIx = await client.createHarvestFeeIx({
+  harvester: harvesterPubkey,
+  vaultManager: managerPubkey,
+  vaultAdmin: adminPubkey,
+  protocolAdmin: protocolAdminPubkey,
+  vault: vaultPubkey,
+});
+
+// Get accumulated fees
+const adminFees = await client.getAccumulatedAdminFeesForVault(vaultPubkey);
+const managerFees = await client.getAccumulatedManagerFeesForVault(vaultPubkey);
+console.log(`Admin fees: ${adminFees.toString()}`);
+console.log(`Manager fees: ${managerFees.toString()}`);
+```
+
+## Helper Methods
+
+### Serialization Helpers
+
+The SDK provides helper methods to serialize values for vault configuration updates:
+
+```typescript
+// Serialize u64 values (for amounts, timestamps, etc.)
+const u64Data = client.serializeU64(new BN(20_000_000_000_000));
+
+// Serialize u16 values (for fee percentages in basis points)
+const u16Data = client.serializeU16(1000); // 10%
+
+// Serialize PublicKey values (for manager updates)
+const pubkeyData = client.serializePubkey(new PublicKey("..."));
 ```
 
 ## API Reference
@@ -242,60 +383,70 @@ pendingWithdrawals.forEach((withdrawal, index) => {
 
 #### Vault Management
 
-- `createInitializeVaultIx(vaultParams, params)`
-- `createUpdateVaultIx(vaultConfig, params)`
-- `createDepositVaultIx(amount, params)`
-- `createRequestWithdrawVaultIx(requestWithdrawArgs, params)`
-- `createCancelRequestWithdrawVaultIx(params)`
-- `createWithdrawVaultIx(params)`
-- `createHarvestFeeIx(params)`
-- `createCreateLpMetadataIx(createLpMetadataArgs, params)`
+- `createInitializeVaultIx(vaultParams, params)` - Initialize a new vault
+- `createUpdateVaultIx(vaultConfig, params)` - **Deprecated:** Update vault (use `createUpdateVaultConfigIx` instead)
+- `createUpdateVaultConfigIx(field, data, params)` - Update a specific vault configuration field
+- `createDepositVaultIx(amount, params)` - Deposit assets into vault
+- `createRequestWithdrawVaultIx(requestWithdrawArgs, params)` - Request withdrawal from vault
+- `createCancelRequestWithdrawVaultIx(params)` - Cancel a pending withdrawal request
+- `createWithdrawVaultIx(params)` - Execute a withdrawal from vault
+- `createHarvestFeeIx(params)` - Harvest accumulated fees
+- `createCalibrateHighWaterMarkIx(params)` - Calibrate the high water mark
+- `createCreateLpMetadataIx(createLpMetadataArgs, params)` - Create LP token metadata
 
 #### Strategy Management
 
-- `createAddAdaptorIx(params)`
-- `createInitializeStrategyIx(initArgs, params)`
-- `createDepositStrategyIx(depositArgs, params)`
-- `createWithdrawStrategyIx(withdrawArgs, params)`
-- `createInitializeDirectWithdrawStrategyIx(initArgs, params)`
-- `createDirectWithdrawStrategyIx(withdrawArgs, params)`
-- `createCloseStrategyIx(params)`
-- `createRemoveAdaptorIx(params)`
+- `createAddAdaptorIx(params)` - Add an adaptor to a vault
+- `createInitializeStrategyIx(initArgs, params)` - Initialize a new strategy
+- `createDepositStrategyIx(depositArgs, params)` - Deposit assets into a strategy
+- `createWithdrawStrategyIx(withdrawArgs, params)` - Withdraw assets from a strategy
+- `createInitializeDirectWithdrawStrategyIx(initArgs, params)` - Initialize direct withdraw for a strategy
+- `createDirectWithdrawStrategyIx(withdrawArgs, params)` - Execute direct withdrawal from a strategy
+- `createCloseStrategyIx(params)` - Close a strategy
+- `createRemoveAdaptorIx(params)` - Remove an adaptor from a vault
 
 #### Account Data
 
-- `fetchVaultAccount(vault)`
-- `fetchStrategyInitReceiptAccount(strategyInitReceipt)`
-- `fetchAdaptorAddReceiptAccount(adaptorAddReceipt)`
-- `fetchRequestWithdrawVaultReceiptAccount(requestWithdrawVaultReceipt)`
-- `fetchAllStrategyInitReceiptAccounts()`
-- `fetchAllStrategyInitReceiptAccountsOfVault(vault)`
-- `fetchAllAdaptorAddReceiptAccountsOfVault(vault)`
-- `fetchAllRequestWithdrawVaultReceiptsOfVault(vault)`
-- `getPositionAndTotalValuesForVault(vault)`
-- `getAccumulatedAdminFeesForVault(vault)`
-- `getAccumulatedManagerFeesForVault(vault)`
-- `getPendingWithdrawalForUser(vault, user)`
-- `getAllPendingWithdrawalsForVault(vault)`
-- `getCurrentAssetPerLpForVault(vault)`
-- `getHighWaterMarkForVault(vault)`
+- `fetchVaultAccount(vault)` - Fetch vault account data
+- `fetchStrategyInitReceiptAccount(strategyInitReceipt)` - Fetch strategy initialization receipt
+- `fetchAdaptorAddReceiptAccount(adaptorAddReceipt)` - Fetch adaptor add receipt
+- `fetchRequestWithdrawVaultReceiptAccount(requestWithdrawVaultReceipt)` - Fetch withdrawal request receipt
+- `fetchAllStrategyInitReceiptAccounts()` - Fetch all strategy receipts
+- `fetchAllStrategyInitReceiptAccountsOfVault(vault)` - Fetch all strategy receipts for a vault
+- `fetchAllAdaptorAddReceiptAccountsOfVault(vault)` - Fetch all adaptor receipts for a vault
+- `fetchAllRequestWithdrawVaultReceiptsOfVault(vault)` - Fetch all withdrawal requests for a vault
+- `getPositionAndTotalValuesForVault(vault)` - Get position values and total vault value
+- `getAccumulatedAdminFeesForVault(vault)` - Get accumulated admin fees
+- `getAccumulatedManagerFeesForVault(vault)` - Get accumulated manager fees
+- `getPendingWithdrawalForUser(vault, user)` - Get pending withdrawal for a specific user
+- `getAllPendingWithdrawalsForVault(vault)` - Get all pending withdrawals for a vault
+- `getCurrentAssetPerLpForVault(vault)` - Get current asset per LP ratio
+- `getHighWaterMarkForVault(vault)` - Get high water mark information
 
 #### PDA Finding
 
-- `findVaultLpMint(vault)`
-- `findVaultAssetIdleAuth(vault)`
-- `findVaultAddresses(vault)`
-- `findVaultStrategyAuth(vault, strategy)`
-- `findStrategyInitReceipt(vault, strategy)`
-- `findDirectWithdrawInitReceipt(vault, strategy)`
-- `findVaultStrategyAddresses(vault, strategy)`
-- `findRequestWithdrawVaultReceipt(vault, user)`
+- `findVaultLpMint(vault)` - Find vault LP mint address
+- `findVaultAssetIdleAuth(vault)` - Find vault asset idle authority
+- `findVaultAddresses(vault)` - Find all vault-related addresses
+- `findVaultStrategyAuth(vault, strategy)` - Find vault strategy authority
+- `findStrategyInitReceipt(vault, strategy)` - Find strategy initialization receipt
+- `findDirectWithdrawInitReceipt(vault, strategy)` - Find direct withdraw receipt
+- `findVaultStrategyAddresses(vault, strategy)` - Find all strategy-related addresses
+- `findRequestWithdrawVaultReceipt(vault, user)` - Find withdrawal request receipt
+- `findLpMetadataAccount(vault)` - Find LP metadata account
 
 #### Calculations
 
-- `calculateAssetsForWithdraw(vaultPk, lpAmount)`
-- `calculateLpForWithdraw(vaultPk, assetAmount)`
-- `calculateLpForDeposit(vaultPk, assetAmount)`
+- `calculateAssetsForWithdraw(vaultPk, lpAmount)` - Calculate asset amount for LP tokens
+- `calculateLpForWithdraw(vaultPk, assetAmount)` - Calculate LP tokens needed for asset amount
+- `calculateLpForDeposit(vaultPk, assetAmount)` - Calculate LP tokens received for deposit
+
+#### Helper Methods
+
+- `serializeU64(value)` - Serialize a u64 value to Buffer
+- `serializeU16(value)` - Serialize a u16 value to Buffer
+- `serializePubkey(pubkey)` - Serialize a PublicKey to Buffer
+- `getBalance(publicKey)` - Get account balance in lamports
 
 ## License
 

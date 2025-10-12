@@ -42,3 +42,17 @@ export interface RequestWithdrawVaultArgs {
   isAmountInLp: boolean;
   isWithdrawAll: boolean;
 }
+
+export enum VaultConfigField {
+  MaxCap = "maxCap",
+  StartAtTs = "startAtTs",
+  LockedProfitDegradationDuration = "lockedProfitDegradationDuration",
+  WithdrawalWaitingPeriod = "withdrawalWaitingPeriod",
+  ManagerPerformanceFee = "managerPerformanceFee",
+  AdminPerformanceFee = "adminPerformanceFee",
+  ManagerManagementFee = "managerManagementFee",
+  AdminManagementFee = "adminManagementFee",
+  RedemptionFee = "redemptionFee",
+  IssuanceFee = "issuanceFee",
+  Manager = "manager",
+}

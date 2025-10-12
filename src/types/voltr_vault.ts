@@ -8,7 +8,7 @@ export type VoltrVault = {
   "address": "vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8",
   "metadata": {
     "name": "voltrVault",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -3281,6 +3281,70 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "updateVaultConfig",
+      "discriminator": [
+        122,
+        3,
+        21,
+        222,
+        158,
+        255,
+        238,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "field",
+          "type": {
+            "defined": {
+              "name": "vaultConfigField"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
       "name": "withdrawStrategy",
       "discriminator": [
         31,
@@ -4298,6 +4362,19 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "updateVaultConfigEvent",
+      "discriminator": [
+        61,
+        92,
+        206,
+        151,
+        162,
+        40,
+        237,
+        103
+      ]
+    },
+    {
       "name": "updateVaultEvent",
       "discriminator": [
         123,
@@ -4407,6 +4484,11 @@ export type VoltrVault = {
       "code": 6013,
       "name": "invalidInput",
       "msg": "Invalid input."
+    },
+    {
+      "code": 6014,
+      "name": "divisionByZero",
+      "msg": "Division by zero."
     }
   ],
   "types": [
@@ -5663,6 +5745,38 @@ export type VoltrVault = {
       }
     },
     {
+      "name": "updateVaultConfigEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "oldValue",
+            "type": "string"
+          },
+          {
+            "name": "newValue",
+            "type": "string"
+          },
+          {
+            "name": "updatedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "updateVaultEvent",
       "type": {
         "kind": "struct",
@@ -5983,6 +6097,47 @@ export type VoltrVault = {
                 95
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "vaultConfigField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "maxCap"
+          },
+          {
+            "name": "startAtTs"
+          },
+          {
+            "name": "lockedProfitDegradationDuration"
+          },
+          {
+            "name": "withdrawalWaitingPeriod"
+          },
+          {
+            "name": "managerPerformanceFee"
+          },
+          {
+            "name": "adminPerformanceFee"
+          },
+          {
+            "name": "managerManagementFee"
+          },
+          {
+            "name": "adminManagementFee"
+          },
+          {
+            "name": "redemptionFee"
+          },
+          {
+            "name": "issuanceFee"
+          },
+          {
+            "name": "manager"
           }
         ]
       }
