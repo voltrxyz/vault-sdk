@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
 
 export const VAULT_PROGRAM_ID = new PublicKey(
   "vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8"
@@ -33,3 +34,6 @@ export const SEEDS = {
   STRATEGY: Buffer.from("strategy"),
   METADATA: Buffer.from("metadata"),
 };
+
+export const ONE_YEAR_BN = new BN(365 * 24 * 60 * 60);
+export const MAX_FEE_BPS_BN = new BN(10_000);
