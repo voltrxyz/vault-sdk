@@ -1681,6 +1681,59 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Fetches the breakdown of the LP supply for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the breakdown of the LP supply
+   *
+   * @example
+   * ```typescript
+   * const lpSupplyBreakdown = await client.getVaultLpSupplyBreakdown(vaultPubkey);
+   * ```
+   */
+  async getVaultLpSupplyBreakdown(vault: PublicKey): Promise<{
+    circulating: BN;
+    unharvestedFees: BN;
+    unrealisedFees: BN;
+    total: BN;
+  }> {
+    const [vaultAccount, lpMintInfo] = await Promise.all([
+      this.fetchVaultAccount(vault),
+      getMint(
+        this.conn,
+        this.findVaultLpMint(vault),
+        this.provider.opts.commitment
+      ),
+    ]);
+
+    const circulating = new BN(lpMintInfo.supply.toString());
+
+    const unharvestedFees = vaultAccount.feeState.accumulatedLpAdminFees
+      .add(vaultAccount.feeState.accumulatedLpManagerFees)
+      .add(vaultAccount.feeState.accumulatedLpProtocolFees);
+
+    const currentTotalLp = circulating.add(unharvestedFees);
+
+    const unrealisedFees = this.calculateUnrealisedLpFees(
+      currentTotalLp,
+      vaultAccount.asset.totalValue,
+      vaultAccount.feeUpdate.lastManagementFeeUpdateTs,
+      new BN(
+        vaultAccount.feeConfiguration.managerManagementFee +
+          vaultAccount.feeConfiguration.adminManagementFee
+      )
+    );
+
+    const total = currentTotalLp.add(unrealisedFees);
+
+    return {
+      circulating,
+      unharvestedFees,
+      unrealisedFees,
+      total,
+    };
+  }
+
+  /**
    * Processes a withdrawal receipt into a standardized withdrawal info object
    * @private
    */
@@ -1815,7 +1868,10 @@ export class VoltrClient extends AccountUtils {
     else return lockedProfit;
   }
 
-  private getProjectedLpSupply(
+  /**
+   * Helper to calculate only the pending (unrealised) LP fees based on time elapsed.
+   */
+  private calculateUnrealisedLpFees(
     currentTotalLp: BN,
     assetTotalValue: BN,
     lastManagementFeeUpdateTs: BN,
@@ -1826,31 +1882,35 @@ export class VoltrClient extends AccountUtils {
       assetTotalValue.eq(new BN(0)) ||
       managementFeeBps.eq(new BN(0))
     ) {
-      return currentTotalLp;
+      return new BN(0);
     }
 
     const nowBn = new BN(Math.floor(Date.now() / 1000));
     const timeElapsed = BN.max(new BN(0), nowBn.sub(lastManagementFeeUpdateTs));
 
     if (timeElapsed.eq(new BN(0))) {
-      return currentTotalLp;
+      return new BN(0);
     }
 
     const feeAmountInAsset = assetTotalValue
       .mul(timeElapsed)
-      .mul(new BN(managementFeeBps))
+      .mul(managementFeeBps)
       .div(MAX_FEE_BPS_BN)
       .div(ONE_YEAR_BN);
 
     const lpNumerator = feeAmountInAsset.mul(currentTotalLp);
     const lpDenominator = assetTotalValue.sub(feeAmountInAsset);
 
+    if (lpDenominator.lte(new BN(0))) {
+      return new BN(0);
+    }
+
     const pendingLpToMint = lpNumerator
       .add(lpDenominator)
       .sub(new BN(1))
       .div(lpDenominator);
 
-    return currentTotalLp.add(pendingLpToMint);
+    return pendingLpToMint;
   }
 
   calculateAssetsForWithdrawHelper(
@@ -1881,12 +1941,13 @@ export class VoltrClient extends AccountUtils {
       .add(vaultAccumulatedLpManagerFees)
       .add(vaultAccumulatedLpProtocolFees);
     const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
-    const lpSupplyInclFees = this.getProjectedLpSupply(
+    const unrealisedLpFees = this.calculateUnrealisedLpFees(
       lpSupplyInclAccumulatedFees,
       vaultTotalValue,
       vaultLastManagementFeeUpdateTs,
       new BN(vaultManagementFeeBps)
     );
+    const lpSupplyInclFees = unrealisedLpFees.add(lpSupplyInclAccumulatedFees);
 
     // asset_to_redeem_pre_fee = amount * (total_asset_pre_withdraw / total_lp_supply_pre_withdraw)
     // asset_to_redeem_post_fee = asset_to_redeem_pre_fee * (10000 - redemption_fee_bps) / 10000
@@ -2001,7 +2062,7 @@ export class VoltrClient extends AccountUtils {
         .add(vault.feeState.accumulatedLpManagerFees)
         .add(vault.feeState.accumulatedLpProtocolFees);
       const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
-      const lpSupplyInclFees = this.getProjectedLpSupply(
+      const unrealisedLpFees = this.calculateUnrealisedLpFees(
         lpSupplyInclAccumulatedFees,
         totalValue,
         vault.feeUpdate.lastManagementFeeUpdateTs,
@@ -2009,6 +2070,9 @@ export class VoltrClient extends AccountUtils {
           vault.feeConfiguration.managerManagementFee +
             vault.feeConfiguration.adminManagementFee
         )
+      );
+      const lpSupplyInclFees = unrealisedLpFees.add(
+        lpSupplyInclAccumulatedFees
       );
 
       // lp_to_burn_pre_fee = redeem_amount * (total_lp_supply_pre_withdraw / total_asset_pre_withdraw)
@@ -2059,7 +2123,7 @@ export class VoltrClient extends AccountUtils {
       .add(vault.feeState.accumulatedLpManagerFees)
       .add(vault.feeState.accumulatedLpProtocolFees);
     const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
-    const lpSupplyInclFees = this.getProjectedLpSupply(
+    const unrealisedLpFees = this.calculateUnrealisedLpFees(
       lpSupplyInclAccumulatedFees,
       totalValue,
       vault.feeUpdate.lastManagementFeeUpdateTs,
@@ -2068,6 +2132,7 @@ export class VoltrClient extends AccountUtils {
           vault.feeConfiguration.adminManagementFee
       )
     );
+    const lpSupplyInclFees = unrealisedLpFees.add(lpSupplyInclAccumulatedFees);
 
     // If the pool is empty, mint LP tokens 1:1 with deposit
     if (lpSupplyInclFees.eq(new BN(0))) {
