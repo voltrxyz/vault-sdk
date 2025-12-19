@@ -14,7 +14,6 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
-
 import {
   LENDING_ADAPTOR_PROGRAM_ID,
   MAX_FEE_BPS_BN,
@@ -384,12 +383,6 @@ export class VoltrClient extends AccountUtils {
   ): Promise<TransactionInstruction> {
     const addresses = this.findVaultAddresses(vault);
 
-    const vaultAssetIdleAta = getAssociatedTokenAddressSync(
-      vaultAssetMint,
-      addresses.vaultAssetIdleAuth,
-      true
-    );
-
     const vaultAssetMintAccount = await this.provider.connection.getAccountInfo(
       vaultAssetMint
     );
@@ -398,6 +391,13 @@ export class VoltrClient extends AccountUtils {
     if (!assetTokenProgram) {
       throw new Error("Vault asset mint not found");
     }
+
+    const vaultAssetIdleAta = getAssociatedTokenAddressSync(
+      vaultAssetMint,
+      addresses.vaultAssetIdleAuth,
+      true,
+      assetTokenProgram
+    );
 
     return await this.vaultProgram.methods
       .initializeVault(
