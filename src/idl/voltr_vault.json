@@ -8,6 +8,33 @@
   },
   "instructions": [
     {
+      "name": "accept_vault_admin",
+      "discriminator": [
+        214,
+        137,
+        204,
+        56,
+        78,
+        214,
+        90,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "pending_admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "add_adaptor",
       "discriminator": [
         161,
@@ -179,6 +206,67 @@
               }
             ]
           }
+        },
+        {
+          "name": "admin_lp_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "admin"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "lp_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
@@ -1890,6 +1978,513 @@
       ]
     },
     {
+      "name": "direct_withdraw_strategy_with_tolerance",
+      "discriminator": [
+        207,
+        51,
+        234,
+        8,
+        76,
+        164,
+        10,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "user_transfer_authority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "adaptor_add_receipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  97,
+                  112,
+                  116,
+                  111,
+                  114,
+                  95,
+                  97,
+                  100,
+                  100,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "adaptor_program"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy_init_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "direct_withdraw_init_receipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  105,
+                  114,
+                  101,
+                  99,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "vault_asset_mint",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "request_withdraw_lp_ata",
+          "docs": [
+            "The request's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "request_withdraw_vault_receipt"
+              },
+              {
+                "kind": "account",
+                "path": "lp_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_lp_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vault_strategy_auth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_asset_ata",
+          "docs": [
+            "The user's asset ATA to which asset tokens will be sent."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              },
+              {
+                "kind": "account",
+                "path": "asset_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_asset_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vault_strategy_asset_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vault_strategy_auth"
+              },
+              {
+                "kind": "account",
+                "path": "asset_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "vault_asset_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "request_withdraw_vault_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "user_transfer_authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "adaptor_program"
+        },
+        {
+          "name": "asset_token_program"
+        },
+        {
+          "name": "lp_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "user_args",
+          "type": {
+            "option": "bytes"
+          }
+        },
+        {
+          "name": "tolerance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "harvest_fee",
       "discriminator": [
         32,
@@ -2235,10 +2830,6 @@
       "args": [
         {
           "name": "operational_state",
-          "type": "u16"
-        },
-        {
-          "name": "fee",
           "type": "u16"
         }
       ]
@@ -3215,66 +3806,6 @@
       ]
     },
     {
-      "name": "update_vault",
-      "discriminator": [
-        67,
-        229,
-        185,
-        188,
-        226,
-        11,
-        210,
-        60
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "vault"
-          ]
-        },
-        {
-          "name": "protocol",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  116,
-                  111,
-                  99,
-                  111,
-                  108
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "vault",
-          "writable": true
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "config",
-          "type": {
-            "defined": {
-              "name": "VaultInitializationInput"
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "update_vault_config",
       "discriminator": [
         122,
@@ -3335,6 +3866,96 @@
         {
           "name": "data",
           "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "update_vault_protocol_fee",
+      "discriminator": [
+        62,
+        83,
+        22,
+        192,
+        137,
+        86,
+        74,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "protocol"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "field",
+          "type": {
+            "defined": {
+              "name": "ProtocolFeeField"
+            }
+          }
+        },
+        {
+          "name": "fee_bps",
+          "type": "u16"
         }
       ]
     },
@@ -4161,6 +4782,19 @@
   ],
   "events": [
     {
+      "name": "AcceptVaultAdminEvent",
+      "discriminator": [
+        140,
+        255,
+        29,
+        68,
+        16,
+        194,
+        251,
+        35
+      ]
+    },
+    {
       "name": "AddAdaptorEvent",
       "discriminator": [
         24,
@@ -4382,6 +5016,19 @@
       ]
     },
     {
+      "name": "UpdateVaultProtocolFeeEvent",
+      "discriminator": [
+        172,
+        1,
+        173,
+        230,
+        228,
+        61,
+        77,
+        244
+      ]
+    },
+    {
       "name": "WithdrawStrategyEvent",
       "discriminator": [
         112,
@@ -4486,6 +5133,30 @@
     }
   ],
   "types": [
+    {
+      "name": "AcceptVaultAdminEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_before",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_after",
+            "type": "pubkey"
+          },
+          {
+            "name": "accepted_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "AdaptorAddReceipt",
       "serialization": "bytemuckunsafe",
@@ -4607,7 +5278,11 @@
             "type": "u64"
           },
           {
-            "name": "vault_lp_supply_incl_fees",
+            "name": "vault_lp_supply_incl_fees_before",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees_after",
             "type": "u64"
           },
           {
@@ -4617,6 +5292,10 @@
           {
             "name": "vault_highest_asset_per_lp_decimal_bits_after",
             "type": "u128"
+          },
+          {
+            "name": "amount_lp_burned",
+            "type": "u64"
           },
           {
             "name": "calibrated_ts",
@@ -5031,6 +5710,20 @@
             "type": "u16"
           },
           {
+            "name": "protocol_performance_fee",
+            "docs": [
+              "Protocol performance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "protocol_management_fee",
+            "docs": [
+              "Protocol management fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -5038,7 +5731,7 @@
             "type": {
               "array": [
                 "u8",
-                36
+                32
               ]
             }
           }
@@ -5083,7 +5776,7 @@
             "type": {
               "array": [
                 "u8",
-                24
+                16
               ]
             }
           }
@@ -5205,10 +5898,6 @@
           },
           {
             "name": "operational_state",
-            "type": "u16"
-          },
-          {
-            "name": "fee",
             "type": "u16"
           },
           {
@@ -5434,11 +6123,16 @@
             "type": "u16"
           },
           {
-            "name": "fee",
+            "name": "_padding1",
             "docs": [
-              "The fee for the protocol."
+              "previously used for fee, now unused"
             ],
-            "type": "u16"
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
           },
           {
             "name": "bump",
@@ -5470,6 +6164,20 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolFeeField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ProtocolPerformanceFee"
+          },
+          {
+            "name": "ProtocolManagementFee"
           }
         ]
       }
@@ -5724,14 +6432,6 @@
             "type": "u16"
           },
           {
-            "name": "fee_before",
-            "type": "u16"
-          },
-          {
-            "name": "fee_after",
-            "type": "u16"
-          },
-          {
             "name": "updated_ts",
             "type": "u64"
           }
@@ -5871,6 +6571,38 @@
       }
     },
     {
+      "name": "UpdateVaultProtocolFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "old_value",
+            "type": "u16"
+          },
+          {
+            "name": "new_value",
+            "type": "u16"
+          },
+          {
+            "name": "updated_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "Vault",
       "serialization": "bytemuckunsafe",
       "repr": {
@@ -5924,6 +6656,13 @@
                 "name": "VaultLp"
               }
             }
+          },
+          {
+            "name": "pending_admin",
+            "docs": [
+              "The pending admin for admin transfer."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "manager",
@@ -5982,6 +6721,13 @@
                 "name": "FeeState"
               }
             }
+          },
+          {
+            "name": "dead_weight",
+            "docs": [
+              "The accumulated dead weight of the vault."
+            ],
+            "type": "u64"
           },
           {
             "name": "high_water_mark",
@@ -6132,6 +6878,12 @@
           },
           {
             "name": "Manager"
+          },
+          {
+            "name": "DisabledOperations"
+          },
+          {
+            "name": "PendingAdmin"
           }
         ]
       }
@@ -6174,6 +6926,13 @@
             "type": "u64"
           },
           {
+            "name": "disabled_operations",
+            "docs": [
+              "Reserved bytes for future use."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -6181,7 +6940,7 @@
             "type": {
               "array": [
                 "u8",
-                48
+                46
               ]
             }
           }
@@ -6304,7 +7063,7 @@
             "type": {
               "array": [
                 "u8",
-                62
+                30
               ]
             }
           }

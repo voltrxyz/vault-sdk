@@ -418,72 +418,6 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
-   * Creates an instruction to update a vault
-   *
-   * @deprecated Since version 1.0.14. Use `createUpdateVaultConfigIx` instead for more granular configuration updates.
-   * This method will be removed in a future version.
-   *
-   * @param {VaultConfig} vaultConfig - Configuration parameters for the vault
-   * @param {BN} vaultConfig.maxCap - Maximum capacity of the vault
-   * @param {BN} vaultConfig.startAtTs - Vault start timestamp in seconds
-   * @param {number} vaultConfig.managerManagementFee - Manager's management fee in basis points (e.g., 50 = 0.5%)
-   * @param {number} vaultConfig.managerPerformanceFee - Manager's performance fee in basis points (e.g., 1000 = 10%)
-   * @param {number} vaultConfig.adminManagementFee - Admin's management fee in basis points (e.g., 50 = 0.5%)
-   * @param {number} vaultConfig.adminPerformanceFee - Admin's performance fee in basis points (e.g., 1000 = 10%)
-   * @param {Object} params - Parameters for updating the vault
-   * @param {PublicKey} params.vault - Public key of the vault
-   * @param {PublicKey} params.admin - Public key of the vault admin
-   * @returns Transaction instruction for updating the vault
-   *
-   * @example
-   * ```typescript
-   * // DEPRECATED - Use createUpdateVaultConfigIx instead
-   * const ix = await client.createUpdateVaultIx(
-   *   {
-   *     maxCap: new BN('1000000000'),
-   *     startAtTs: new BN(Math.floor(Date.now() / 1000)),
-   *     managerManagementFee: 50,
-   *     managerPerformanceFee: 1000,
-   *     adminManagementFee: 50,
-   *     adminPerformanceFee: 1000,
-   *   },
-   *   { vault: vaultPubkey, admin: adminPubkey }
-   * );
-   *
-   * // NEW WAY - Update individual fields:
-   * const newMaxCap = new BN('1000000000');
-   * const data = newMaxCap.toArrayLike(Buffer, 'le', 8);
-   * const ix = await client.createUpdateVaultConfigIx(
-   *   VaultConfigField.MaxCap,
-   *   data,
-   *   { vault: vaultPubkey, admin: adminPubkey }
-   * );
-   * ```
-   */
-  async createUpdateVaultIx(
-    vaultConfig: VaultConfig,
-    {
-      vault,
-      admin,
-    }: {
-      vault: PublicKey;
-      admin: PublicKey;
-    }
-  ): Promise<TransactionInstruction> {
-    const lpMint = this.findVaultLpMint(vault);
-    return await this.vaultProgram.methods
-      .updateVault(vaultConfig)
-      .accountsPartial({
-        admin,
-        vault,
-      })
-      .remainingAccounts([
-        { pubkey: lpMint, isSigner: false, isWritable: false },
-      ])
-      .instruction();
-  }
-
-  /**
    * Creates an instruction to update a specific vault configuration field
    *
    * @param {VaultConfigField} field - The configuration field to update
@@ -595,6 +529,8 @@ export class VoltrClient extends AccountUtils {
       [VaultConfigField.RedemptionFee]: { redemptionFee: {} },
       [VaultConfigField.IssuanceFee]: { issuanceFee: {} },
       [VaultConfigField.Manager]: { manager: {} },
+      [VaultConfigField.PendingAdmin]: { pendingAdmin: {} },
+      [VaultConfigField.DisabledOperations]: { disabledOperations: {} },
     };
 
     const fieldVariant = fieldToVariant[field];
@@ -609,6 +545,39 @@ export class VoltrClient extends AccountUtils {
         vault,
       })
       .remainingAccounts(remainingAccounts)
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction for the pending admin to accept the vault admin role
+   *
+   * @param {Object} params - Parameters for accepting vault admin
+   * @param {PublicKey} params.pendingAdmin - Public key of the pending admin (must be signer)
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for accepting vault admin
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createAcceptVaultAdminIx({
+   *   pendingAdmin: pendingAdminPubkey,
+   *   vault: vaultPubkey,
+   * });
+   * ```
+   */
+  async createAcceptVaultAdminIx({
+    pendingAdmin,
+    vault,
+  }: {
+    pendingAdmin: PublicKey;
+    vault: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .acceptVaultAdmin()
+      .accountsStrict({
+        pendingAdmin,
+        vault,
+      })
       .instruction();
   }
 
@@ -1237,6 +1206,79 @@ export class VoltrClient extends AccountUtils {
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .directWithdrawStrategy(userArgs)
+      .accounts({
+        userTransferAuthority: user,
+        strategy,
+        adaptorProgram,
+        vault,
+        vaultAssetMint,
+        assetTokenProgram,
+      })
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to withdraw assets from a strategy via direct withdrawal with tolerance
+   * @param {Object} args - Arguments for the withdrawal
+   * @param {Buffer | null} args.userArgs - Optional user arguments
+   * @param {BN} args.tolerance - Tolerance amount for the withdrawal
+   * @param {Object} params - Parameters for withdrawing assets from direct withdraw strategy
+   * @param {PublicKey} params.user - Public key of the user
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
+   * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
+   * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
+   * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawing assets from direct withdraw strategy with tolerance
+   * @throws {Error} If instruction creation fails
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createDirectWithdrawStrategyWithToleranceIx(
+   *   {
+   *     userArgs: Buffer.from('...'),
+   *     tolerance: new BN(1)
+   *   },
+   *   {
+   *     user: userPubkey,
+   *     vault: vaultPubkey,
+   *     strategy: strategyPubkey,
+   *     vaultAssetMint: mintPubkey,
+   *     assetTokenProgram: tokenProgramPubkey,
+   *     adaptorProgram: adaptorProgramPubkey,
+   *     remainingAccounts: []
+   *   }
+   * );
+   * ```
+   */
+  async createDirectWithdrawStrategyWithToleranceIx(
+    { userArgs = null, tolerance }: { userArgs?: Buffer | null; tolerance: BN },
+    {
+      user,
+      vault,
+      strategy,
+      vaultAssetMint,
+      assetTokenProgram,
+      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      remainingAccounts,
+    }: {
+      user: PublicKey;
+      vault: PublicKey;
+      strategy: PublicKey;
+      vaultAssetMint: PublicKey;
+      assetTokenProgram: PublicKey;
+      adaptorProgram?: PublicKey;
+      remainingAccounts: Array<{
+        pubkey: PublicKey;
+        isSigner: boolean;
+        isWritable: boolean;
+      }>;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .directWithdrawStrategyWithTolerance(userArgs, tolerance)
       .accounts({
         userTransferAuthority: user,
         strategy,

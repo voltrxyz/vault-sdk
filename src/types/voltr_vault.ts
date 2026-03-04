@@ -14,6 +14,33 @@ export type VoltrVault = {
   },
   "instructions": [
     {
+      "name": "acceptVaultAdmin",
+      "discriminator": [
+        214,
+        137,
+        204,
+        56,
+        78,
+        214,
+        90,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "pendingAdmin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "addAdaptor",
       "discriminator": [
         161,
@@ -185,6 +212,67 @@ export type VoltrVault = {
               }
             ]
           }
+        },
+        {
+          "name": "adminLpAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "admin"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
@@ -1896,6 +1984,513 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "directWithdrawStrategyWithTolerance",
+      "discriminator": [
+        207,
+        51,
+        234,
+        8,
+        76,
+        164,
+        10,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "adaptorAddReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  97,
+                  112,
+                  116,
+                  111,
+                  114,
+                  95,
+                  97,
+                  100,
+                  100,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "adaptorProgram"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategyInitReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "directWithdrawInitReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  105,
+                  114,
+                  101,
+                  99,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "vaultAssetMint",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "requestWithdrawLpAta",
+          "docs": [
+            "The request's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "requestWithdrawVaultReceipt"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAuth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userAssetAta",
+          "docs": [
+            "The user's asset ATA to which asset tokens will be sent."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAssetAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultStrategyAuth"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "requestWithdrawVaultReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "adaptorProgram"
+        },
+        {
+          "name": "assetTokenProgram"
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "userArgs",
+          "type": {
+            "option": "bytes"
+          }
+        },
+        {
+          "name": "tolerance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "harvestFee",
       "discriminator": [
         32,
@@ -2241,10 +2836,6 @@ export type VoltrVault = {
       "args": [
         {
           "name": "operationalState",
-          "type": "u16"
-        },
-        {
-          "name": "fee",
           "type": "u16"
         }
       ]
@@ -3221,66 +3812,6 @@ export type VoltrVault = {
       ]
     },
     {
-      "name": "updateVault",
-      "discriminator": [
-        67,
-        229,
-        185,
-        188,
-        226,
-        11,
-        210,
-        60
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "vault"
-          ]
-        },
-        {
-          "name": "protocol",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  116,
-                  111,
-                  99,
-                  111,
-                  108
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "vault",
-          "writable": true
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "config",
-          "type": {
-            "defined": {
-              "name": "vaultInitializationInput"
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "updateVaultConfig",
       "discriminator": [
         122,
@@ -3341,6 +3872,96 @@ export type VoltrVault = {
         {
           "name": "data",
           "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "updateVaultProtocolFee",
+      "discriminator": [
+        62,
+        83,
+        22,
+        192,
+        137,
+        86,
+        74,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "protocol"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "field",
+          "type": {
+            "defined": {
+              "name": "protocolFeeField"
+            }
+          }
+        },
+        {
+          "name": "feeBps",
+          "type": "u16"
         }
       ]
     },
@@ -4167,6 +4788,19 @@ export type VoltrVault = {
   ],
   "events": [
     {
+      "name": "acceptVaultAdminEvent",
+      "discriminator": [
+        140,
+        255,
+        29,
+        68,
+        16,
+        194,
+        251,
+        35
+      ]
+    },
+    {
       "name": "addAdaptorEvent",
       "discriminator": [
         24,
@@ -4388,6 +5022,19 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "updateVaultProtocolFeeEvent",
+      "discriminator": [
+        172,
+        1,
+        173,
+        230,
+        228,
+        61,
+        77,
+        244
+      ]
+    },
+    {
       "name": "withdrawStrategyEvent",
       "discriminator": [
         112,
@@ -4492,6 +5139,30 @@ export type VoltrVault = {
     }
   ],
   "types": [
+    {
+      "name": "acceptVaultAdminEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminBefore",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminAfter",
+            "type": "pubkey"
+          },
+          {
+            "name": "acceptedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "adaptorAddReceipt",
       "serialization": "bytemuckunsafe",
@@ -4613,7 +5284,11 @@ export type VoltrVault = {
             "type": "u64"
           },
           {
-            "name": "vaultLpSupplyInclFees",
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
             "type": "u64"
           },
           {
@@ -4623,6 +5298,10 @@ export type VoltrVault = {
           {
             "name": "vaultHighestAssetPerLpDecimalBitsAfter",
             "type": "u128"
+          },
+          {
+            "name": "amountLpBurned",
+            "type": "u64"
           },
           {
             "name": "calibratedTs",
@@ -5037,6 +5716,20 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
+            "name": "protocolPerformanceFee",
+            "docs": [
+              "Protocol performance fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "protocolManagementFee",
+            "docs": [
+              "Protocol management fee in basis points (BPS)."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -5044,7 +5737,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                36
+                32
               ]
             }
           }
@@ -5089,7 +5782,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                24
+                16
               ]
             }
           }
@@ -5211,10 +5904,6 @@ export type VoltrVault = {
           },
           {
             "name": "operationalState",
-            "type": "u16"
-          },
-          {
-            "name": "fee",
             "type": "u16"
           },
           {
@@ -5440,11 +6129,16 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
-            "name": "fee",
+            "name": "padding1",
             "docs": [
-              "The fee for the protocol."
+              "previously used for fee, now unused"
             ],
-            "type": "u16"
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
           },
           {
             "name": "bump",
@@ -5476,6 +6170,20 @@ export type VoltrVault = {
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "protocolFeeField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "protocolPerformanceFee"
+          },
+          {
+            "name": "protocolManagementFee"
           }
         ]
       }
@@ -5730,14 +6438,6 @@ export type VoltrVault = {
             "type": "u16"
           },
           {
-            "name": "feeBefore",
-            "type": "u16"
-          },
-          {
-            "name": "feeAfter",
-            "type": "u16"
-          },
-          {
             "name": "updatedTs",
             "type": "u64"
           }
@@ -5877,6 +6577,38 @@ export type VoltrVault = {
       }
     },
     {
+      "name": "updateVaultProtocolFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "oldValue",
+            "type": "u16"
+          },
+          {
+            "name": "newValue",
+            "type": "u16"
+          },
+          {
+            "name": "updatedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "vault",
       "serialization": "bytemuckunsafe",
       "repr": {
@@ -5930,6 +6662,13 @@ export type VoltrVault = {
                 "name": "vaultLp"
               }
             }
+          },
+          {
+            "name": "pendingAdmin",
+            "docs": [
+              "The pending admin for admin transfer."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "manager",
@@ -5988,6 +6727,13 @@ export type VoltrVault = {
                 "name": "feeState"
               }
             }
+          },
+          {
+            "name": "deadWeight",
+            "docs": [
+              "The accumulated dead weight of the vault."
+            ],
+            "type": "u64"
           },
           {
             "name": "highWaterMark",
@@ -6138,6 +6884,12 @@ export type VoltrVault = {
           },
           {
             "name": "manager"
+          },
+          {
+            "name": "disabledOperations"
+          },
+          {
+            "name": "pendingAdmin"
           }
         ]
       }
@@ -6180,6 +6932,13 @@ export type VoltrVault = {
             "type": "u64"
           },
           {
+            "name": "disabledOperations",
+            "docs": [
+              "Reserved bytes for future use."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved bytes for future use."
@@ -6187,7 +6946,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                48
+                46
               ]
             }
           }
@@ -6310,7 +7069,7 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                62
+                30
               ]
             }
           }

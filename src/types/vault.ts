@@ -55,4 +55,6 @@ export enum VaultConfigField {
   RedemptionFee = "redemptionFee",
   IssuanceFee = "issuanceFee",
   Manager = "manager",
+  PendingAdmin = "pendingAdmin",
+  DisabledOperations = "disabledOperations",
 }
