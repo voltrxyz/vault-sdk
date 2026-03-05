@@ -6880,10 +6880,10 @@
             "name": "Manager"
           },
           {
-            "name": "DisabledOperations"
+            "name": "PendingAdmin"
           },
           {
-            "name": "PendingAdmin"
+            "name": "DisabledOperations"
           }
         ]
       }

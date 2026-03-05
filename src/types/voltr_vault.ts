@@ -6886,10 +6886,10 @@ export type VoltrVault = {
             "name": "manager"
           },
           {
-            "name": "disabledOperations"
+            "name": "pendingAdmin"
           },
           {
-            "name": "pendingAdmin"
+            "name": "disabledOperations"
           }
         ]
       }
