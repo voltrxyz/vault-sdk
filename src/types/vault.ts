@@ -43,6 +43,19 @@ export interface RequestWithdrawVaultArgs {
   isWithdrawAll: boolean;
 }
 
+export interface InstantWithdrawVaultArgs {
+  amount: BN;
+  isAmountInLp: boolean;
+  isWithdrawAll: boolean;
+}
+
+export interface InstantWithdrawStrategyArgs {
+  amount: BN;
+  isAmountInLp: boolean;
+  isWithdrawAll: boolean;
+  userArgs?: Buffer | null;
+}
+
 export enum VaultConfigField {
   MaxCap = "maxCap",
   StartAtTs = "startAtTs",
@@ -57,4 +70,14 @@ export enum VaultConfigField {
   Manager = "manager",
   PendingAdmin = "pendingAdmin",
   DisabledOperations = "disabledOperations",
+}
+
+export enum ProtocolConfigField {
+  OperationalState = "operationalState",
+  PendingAdmin = "pendingAdmin",
+}
+
+export enum ProtocolFeeField {
+  ProtocolPerformanceFee = "protocolPerformanceFee",
+  ProtocolManagementFee = "protocolManagementFee",
 }

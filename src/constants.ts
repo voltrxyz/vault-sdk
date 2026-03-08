@@ -5,14 +5,6 @@ export const VAULT_PROGRAM_ID = new PublicKey(
   "vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8"
 );
 
-export const LENDING_ADAPTOR_PROGRAM_ID = new PublicKey(
-  "aVoLTRCRt3NnnchvLYH6rMYehJHwM5m45RmLBZq7PGz"
-);
-
-export const DRIFT_ADAPTOR_PROGRAM_ID = new PublicKey(
-  "EBN93eXs5fHGBABuajQqdsKRkCgaqtJa8vEFD6vKXiP"
-);
-
 export const METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );

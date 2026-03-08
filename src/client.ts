@@ -15,7 +15,6 @@ import {
 } from "@solana/web3.js";
 import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import {
-  LENDING_ADAPTOR_PROGRAM_ID,
   MAX_FEE_BPS_BN,
   METADATA_PROGRAM_ID,
   ONE_YEAR_BN,
@@ -30,7 +29,11 @@ import {
   WithdrawStrategyArgs,
   InitializeDirectWithdrawStrategyArgs,
   RequestWithdrawVaultArgs,
+  InstantWithdrawVaultArgs,
+  InstantWithdrawStrategyArgs,
   VaultConfigField,
+  ProtocolConfigField,
+  ProtocolFeeField,
 } from "./types";
 
 // Import IDL files
@@ -38,7 +41,7 @@ import * as vaultIdl from "./idl/voltr_vault.json";
 import { convertDecimalBitsToDecimal } from "./decimals";
 
 class CustomWallet implements Wallet {
-  constructor(readonly payer: Keypair) {}
+  constructor(readonly payer: Keypair) { }
 
   async signTransaction(tx: any) {
     tx.partialSign(this.payer);
@@ -308,6 +311,150 @@ export class VoltrClient extends AccountUtils {
       METADATA_PROGRAM_ID
     );
     return lpMetadataAccount;
+  }
+
+  /**
+   * Finds the protocol PDA address
+   * @returns The PDA for the protocol account
+   *
+   * @example
+   * ```typescript
+   * const protocol = client.findProtocol();
+   * ```
+   */
+  findProtocol() {
+    const [protocol] = PublicKey.findProgramAddressSync(
+      [SEEDS.PROTOCOL],
+      this.vaultProgram.programId
+    );
+    return protocol;
+  }
+
+  // --------------------------------------- Protocol Instructions
+
+  /**
+   * Creates an instruction to initialize the protocol
+   *
+   * @param {number} operationalState - Bitflags for allowed operations (e.g., CREATE_VAULT = 1, DEPOSIT_VAULT = 2, etc.)
+   * @param {Object} params - Parameters for initializing the protocol
+   * @param {PublicKey} params.payer - Public key of the fee payer
+   * @param {PublicKey} params.admin - Public key of the protocol admin
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for initializing the protocol
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createInitProtocolIx(
+   *   0xFFFF, // enable all operations
+   *   {
+   *     payer: payerPubkey,
+   *     admin: adminPubkey,
+   *   }
+   * );
+   * ```
+   */
+  async createInitProtocolIx(
+    operationalState: number,
+    {
+      payer,
+      admin,
+    }: {
+      payer: PublicKey;
+      admin: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .initProtocol(operationalState)
+      .accounts({
+        payer,
+        admin,
+      })
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to update the protocol configuration
+   *
+   * @param {ProtocolConfigField} field - The protocol configuration field to update
+   * @param {Buffer} data - The serialized data for the new value
+   * @param {Object} params - Parameters for updating the protocol
+   * @param {PublicKey} params.admin - Public key of the protocol admin
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for updating the protocol
+   *
+   * @throws {Error} If the field is unknown
+   *
+   * @example Update operational state
+   * ```typescript
+   * const data = Buffer.alloc(2);
+   * data.writeUInt16LE(0xFFFF, 0);
+   * const ix = await client.createUpdateProtocolIx(
+   *   ProtocolConfigField.OperationalState,
+   *   data,
+   *   { admin: adminPubkey }
+   * );
+   * ```
+   *
+   * @example Set pending admin for 2-step transfer
+   * ```typescript
+   * const data = newAdmin.toBuffer();
+   * const ix = await client.createUpdateProtocolIx(
+   *   ProtocolConfigField.PendingAdmin,
+   *   data,
+   *   { admin: adminPubkey }
+   * );
+   * ```
+   */
+  async createUpdateProtocolIx(
+    field: ProtocolConfigField,
+    data: Buffer,
+    {
+      admin,
+    }: {
+      admin: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    const fieldToVariant = {
+      [ProtocolConfigField.OperationalState]: { operationalState: {} },
+      [ProtocolConfigField.PendingAdmin]: { pendingAdmin: {} },
+    };
+
+    const fieldVariant = fieldToVariant[field];
+    if (!fieldVariant) {
+      throw new Error(`Unknown protocol config field: ${field}`);
+    }
+
+    return await this.vaultProgram.methods
+      .updateProtocol(fieldVariant, data)
+      .accounts({
+        admin,
+      })
+      .instruction();
+  }
+
+  /**
+   * Creates an instruction to accept a protocol admin transfer (2-step admin transfer)
+   *
+   * @param {Object} params - Parameters for accepting protocol admin
+   * @param {PublicKey} params.pendingAdmin - Public key of the pending admin (must be signer)
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for accepting protocol admin
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createAcceptProtocolAdminIx({
+   *   pendingAdmin: pendingAdminPubkey,
+   * });
+   * ```
+   */
+  async createAcceptProtocolAdminIx({
+    pendingAdmin,
+  }: {
+    pendingAdmin: PublicKey;
+  }): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .acceptProtocolAdmin()
+      .accounts({
+        pendingAdmin,
+      })
+      .instruction();
   }
 
   // --------------------------------------- Vault Instructions
@@ -760,6 +907,64 @@ export class VoltrClient extends AccountUtils {
       .instruction();
   }
 
+  /**
+   * Creates an instant withdraw instruction for a vault (no waiting period required)
+   *
+   * @param {InstantWithdrawVaultArgs} args - Instant withdrawal arguments
+   * @param {BN} args.amount - Amount to withdraw (in LP tokens or asset, depending on isAmountInLp)
+   * @param {boolean} args.isAmountInLp - Whether the amount is denominated in LP tokens
+   * @param {boolean} args.isWithdrawAll - Whether to withdraw all user's LP tokens
+   * @param {Object} params - Instant withdraw parameters
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user's transfer authority
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
+   * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for instant withdrawal
+   *
+   * @throws {Error} If the vault's withdrawal waiting period is not zero
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createInstantWithdrawVaultIx(
+   *   {
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
+   *   },
+   *   {
+   *     userTransferAuthority: userPubkey,
+   *     vault: vaultPubkey,
+   *     vaultAssetMint: mintPubkey,
+   *     assetTokenProgram: tokenProgramPubkey,
+   *   }
+   * );
+   * ```
+   */
+  async createInstantWithdrawVaultIx(
+    { amount, isAmountInLp, isWithdrawAll }: InstantWithdrawVaultArgs,
+    {
+      userTransferAuthority,
+      vault,
+      vaultAssetMint,
+      assetTokenProgram,
+    }: {
+      userTransferAuthority: PublicKey;
+      vault: PublicKey;
+      vaultAssetMint: PublicKey;
+      assetTokenProgram: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .instantWithdrawVault(amount, isAmountInLp, isWithdrawAll)
+      .accounts({
+        userTransferAuthority,
+        vault,
+        vaultAssetMint,
+        assetTokenProgram,
+      })
+      .instruction();
+  }
+
   // --------------------------------------- Strategy Instructions
 
   /**
@@ -787,12 +992,12 @@ export class VoltrClient extends AccountUtils {
     vault,
     payer,
     admin,
-    adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+    adaptorProgram,
   }: {
     vault: PublicKey;
     payer: PublicKey;
     admin: PublicKey;
-    adaptorProgram?: PublicKey;
+    adaptorProgram: PublicKey;
   }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .addAdaptor()
@@ -848,14 +1053,14 @@ export class VoltrClient extends AccountUtils {
       vault,
       manager,
       strategy,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
       remainingAccounts,
     }: {
       payer: PublicKey;
       vault: PublicKey;
       manager: PublicKey;
       strategy: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
       remainingAccounts: Array<{
         pubkey: PublicKey;
         isSigner: boolean;
@@ -929,7 +1134,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint,
       strategy,
       assetTokenProgram,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
       remainingAccounts,
     }: {
       manager: PublicKey;
@@ -937,7 +1142,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint: PublicKey;
       strategy: PublicKey;
       assetTokenProgram: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
       remainingAccounts: Array<{
         pubkey: PublicKey;
         isSigner: boolean;
@@ -1007,7 +1212,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint,
       strategy,
       assetTokenProgram,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
       remainingAccounts,
     }: {
       manager: PublicKey;
@@ -1015,7 +1220,7 @@ export class VoltrClient extends AccountUtils {
       vaultAssetMint: PublicKey;
       strategy: PublicKey;
       assetTokenProgram: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
       remainingAccounts: Array<{
         pubkey: PublicKey;
         isSigner: boolean;
@@ -1062,11 +1267,11 @@ export class VoltrClient extends AccountUtils {
   async createRemoveAdaptorIx({
     vault,
     admin,
-    adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+    adaptorProgram,
   }: {
     vault: PublicKey;
     admin: PublicKey;
-    adaptorProgram?: PublicKey;
+    adaptorProgram: PublicKey;
   }): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
       .removeAdaptor()
@@ -1122,13 +1327,13 @@ export class VoltrClient extends AccountUtils {
       admin,
       vault,
       strategy,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
     }: {
       payer: PublicKey;
       admin: PublicKey;
       vault: PublicKey;
       strategy: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
     }
   ): Promise<TransactionInstruction> {
     return await this.vaultProgram.methods
@@ -1188,7 +1393,7 @@ export class VoltrClient extends AccountUtils {
       strategy,
       vaultAssetMint,
       assetTokenProgram,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
       remainingAccounts,
     }: {
       user: PublicKey;
@@ -1196,7 +1401,7 @@ export class VoltrClient extends AccountUtils {
       strategy: PublicKey;
       vaultAssetMint: PublicKey;
       assetTokenProgram: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
       remainingAccounts: Array<{
         pubkey: PublicKey;
         isSigner: boolean;
@@ -1219,19 +1424,20 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
-   * Creates an instruction to withdraw assets from a strategy via direct withdrawal with tolerance
-   * @param {Object} args - Arguments for the withdrawal
-   * @param {Buffer | null} args.userArgs - Optional user arguments
-   * @param {BN} args.tolerance - Tolerance amount for the withdrawal
+   * Creates an instruction to withdraw assets from a direct withdraw strategy with slippage tolerance
+   *
+   * @param {Object} directWithdrawArgs - Withdrawal arguments
+   * @param {Buffer | null} [directWithdrawArgs.userArgs] - Optional user arguments for the instruction
+   * @param {BN} directWithdrawArgs.tolerance - Slippage tolerance in asset amount (max difference between requested and actual)
    * @param {Object} params - Parameters for withdrawing assets from direct withdraw strategy
    * @param {PublicKey} params.user - Public key of the user
    * @param {PublicKey} params.vault - Public key of the vault
    * @param {PublicKey} params.strategy - Public key of the strategy
    * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
    * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
-   * @param {PublicKey} params.adaptorProgram - Public key of the adaptor program
+   * @param {PublicKey} [params.adaptorProgram] - Public key of the adaptor program (defaults to lending adaptor)
    * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
-   * @returns {Promise<TransactionInstruction>} Transaction instruction for withdrawing assets from direct withdraw strategy with tolerance
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for direct withdraw with tolerance
    * @throws {Error} If instruction creation fails
    *
    * @example
@@ -1239,7 +1445,7 @@ export class VoltrClient extends AccountUtils {
    * const ix = await client.createDirectWithdrawStrategyWithToleranceIx(
    *   {
    *     userArgs: Buffer.from('...'),
-   *     tolerance: new BN(1)
+   *     tolerance: new BN(1000),
    *   },
    *   {
    *     user: userPubkey,
@@ -1247,8 +1453,7 @@ export class VoltrClient extends AccountUtils {
    *     strategy: strategyPubkey,
    *     vaultAssetMint: mintPubkey,
    *     assetTokenProgram: tokenProgramPubkey,
-   *     adaptorProgram: adaptorProgramPubkey,
-   *     remainingAccounts: []
+   *     remainingAccounts: [],
    *   }
    * );
    * ```
@@ -1261,7 +1466,7 @@ export class VoltrClient extends AccountUtils {
       strategy,
       vaultAssetMint,
       assetTokenProgram,
-      adaptorProgram = LENDING_ADAPTOR_PROGRAM_ID,
+      adaptorProgram,
       remainingAccounts,
     }: {
       user: PublicKey;
@@ -1269,7 +1474,7 @@ export class VoltrClient extends AccountUtils {
       strategy: PublicKey;
       vaultAssetMint: PublicKey;
       assetTokenProgram: PublicKey;
-      adaptorProgram?: PublicKey;
+      adaptorProgram: PublicKey;
       remainingAccounts: Array<{
         pubkey: PublicKey;
         isSigner: boolean;
@@ -1286,6 +1491,182 @@ export class VoltrClient extends AccountUtils {
         vault,
         vaultAssetMint,
         assetTokenProgram,
+      })
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+  }
+
+  /**
+   * Creates an instant withdraw instruction for a strategy (no waiting period, withdraws directly from strategy)
+   *
+   * @param {InstantWithdrawStrategyArgs} args - Instant withdrawal arguments
+   * @param {BN} args.amount - Amount to withdraw (in LP tokens or asset, depending on isAmountInLp)
+   * @param {boolean} args.isAmountInLp - Whether the amount is denominated in LP tokens
+   * @param {boolean} args.isWithdrawAll - Whether to withdraw all user's LP tokens
+   * @param {Buffer | null} [args.userArgs] - Optional user arguments passed to the adaptor
+   * @param {Object} params - Instant withdraw strategy parameters
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user's transfer authority
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
+   * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
+   * @param {PublicKey} [params.adaptorProgram] - Public key of the adaptor program (defaults to lending adaptor)
+   * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for instant strategy withdrawal
+   * @throws {Error} If the vault's withdrawal waiting period is not zero
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createInstantWithdrawStrategyIx(
+   *   {
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
+   *   },
+   *   {
+   *     userTransferAuthority: userPubkey,
+   *     vault: vaultPubkey,
+   *     strategy: strategyPubkey,
+   *     vaultAssetMint: mintPubkey,
+   *     assetTokenProgram: tokenProgramPubkey,
+   *     remainingAccounts: [],
+   *   }
+   * );
+   * ```
+   */
+  async createInstantWithdrawStrategyIx(
+    {
+      amount,
+      isAmountInLp,
+      isWithdrawAll,
+      userArgs = null,
+    }: InstantWithdrawStrategyArgs,
+    {
+      userTransferAuthority,
+      vault,
+      strategy,
+      vaultAssetMint,
+      assetTokenProgram,
+      adaptorProgram,
+      remainingAccounts,
+    }: {
+      userTransferAuthority: PublicKey;
+      vault: PublicKey;
+      strategy: PublicKey;
+      vaultAssetMint: PublicKey;
+      assetTokenProgram: PublicKey;
+      adaptorProgram: PublicKey;
+      remainingAccounts: Array<{
+        pubkey: PublicKey;
+        isSigner: boolean;
+        isWritable: boolean;
+      }>;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .instantWithdrawStrategy(
+        amount,
+        isAmountInLp,
+        isWithdrawAll,
+        userArgs ?? null
+      )
+      .accounts({
+        userTransferAuthority,
+        vault,
+        strategy,
+        vaultAssetMint,
+        assetTokenProgram,
+        adaptorProgram,
+      })
+      .remainingAccounts(remainingAccounts)
+      .instruction();
+  }
+
+  /**
+   * Creates an instant withdraw instruction for a strategy with slippage tolerance
+   *
+   * @param {InstantWithdrawStrategyArgs & { tolerance: BN }} args - Instant withdrawal arguments with tolerance
+   * @param {BN} args.amount - Amount to withdraw (in LP tokens or asset, depending on isAmountInLp)
+   * @param {boolean} args.isAmountInLp - Whether the amount is denominated in LP tokens
+   * @param {boolean} args.isWithdrawAll - Whether to withdraw all user's LP tokens
+   * @param {Buffer | null} [args.userArgs] - Optional user arguments passed to the adaptor
+   * @param {BN} args.tolerance - Slippage tolerance in asset amount (max difference between requested and actual)
+   * @param {Object} params - Instant withdraw strategy parameters
+   * @param {PublicKey} params.userTransferAuthority - Public key of the user's transfer authority
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @param {PublicKey} params.strategy - Public key of the strategy
+   * @param {PublicKey} params.vaultAssetMint - Public key of the vault asset mint
+   * @param {PublicKey} params.assetTokenProgram - Public key of the asset token program
+   * @param {PublicKey} [params.adaptorProgram] - Public key of the adaptor program (defaults to lending adaptor)
+   * @param {Array<{ pubkey: PublicKey, isSigner: boolean, isWritable: boolean }>} params.remainingAccounts - Remaining accounts for the instruction
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for instant strategy withdrawal with tolerance
+   * @throws {Error} If the vault's withdrawal waiting period is not zero
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createInstantWithdrawStrategyWithToleranceIx(
+   *   {
+   *     amount: new BN('1000000000'),
+   *     isAmountInLp: true,
+   *     isWithdrawAll: false,
+   *     tolerance: new BN(1000),
+   *   },
+   *   {
+   *     userTransferAuthority: userPubkey,
+   *     vault: vaultPubkey,
+   *     strategy: strategyPubkey,
+   *     vaultAssetMint: mintPubkey,
+   *     assetTokenProgram: tokenProgramPubkey,
+   *     remainingAccounts: [],
+   *   }
+   * );
+   * ```
+   */
+  async createInstantWithdrawStrategyWithToleranceIx(
+    {
+      amount,
+      isAmountInLp,
+      isWithdrawAll,
+      userArgs = null,
+      tolerance,
+    }: InstantWithdrawStrategyArgs & { tolerance: BN },
+    {
+      userTransferAuthority,
+      vault,
+      strategy,
+      vaultAssetMint,
+      assetTokenProgram,
+      adaptorProgram,
+      remainingAccounts,
+    }: {
+      userTransferAuthority: PublicKey;
+      vault: PublicKey;
+      strategy: PublicKey;
+      vaultAssetMint: PublicKey;
+      assetTokenProgram: PublicKey;
+      adaptorProgram: PublicKey;
+      remainingAccounts: Array<{
+        pubkey: PublicKey;
+        isSigner: boolean;
+        isWritable: boolean;
+      }>;
+    }
+  ): Promise<TransactionInstruction> {
+    return await this.vaultProgram.methods
+      .instantWithdrawStrategyWithTolerance(
+        amount,
+        isAmountInLp,
+        isWithdrawAll,
+        userArgs ?? null,
+        tolerance
+      )
+      .accounts({
+        userTransferAuthority,
+        vault,
+        strategy,
+        vaultAssetMint,
+        assetTokenProgram,
+        adaptorProgram,
       })
       .remainingAccounts(remainingAccounts)
       .instruction();
@@ -1465,6 +1846,65 @@ export class VoltrClient extends AccountUtils {
       })
       .instruction();
   }
+
+  /**
+   * Creates an instruction to update per-vault protocol fees (admin-only, protocol level)
+   *
+   * @param {ProtocolFeeField} field - The protocol fee field to update
+   * @param {number} feeBps - The new fee value in basis points
+   * @param {Object} params - Parameters for updating the protocol fee
+   * @param {PublicKey} params.admin - Public key of the protocol admin
+   * @param {PublicKey} params.vault - Public key of the vault
+   * @returns {Promise<TransactionInstruction>} Transaction instruction for updating the protocol fee
+   *
+   * @throws {Error} If the total fee (protocol + admin + manager) exceeds 10000 BPS
+   *
+   * @example
+   * ```typescript
+   * const ix = await client.createUpdateVaultProtocolFeeIx(
+   *   ProtocolFeeField.ProtocolPerformanceFee,
+   *   500, // 5%
+   *   {
+   *     admin: protocolAdminPubkey,
+   *     vault: vaultPubkey,
+   *   }
+   * );
+   * ```
+   */
+  async createUpdateVaultProtocolFeeIx(
+    field: ProtocolFeeField,
+    feeBps: number,
+    {
+      admin,
+      vault,
+    }: {
+      admin: PublicKey;
+      vault: PublicKey;
+    }
+  ): Promise<TransactionInstruction> {
+    const fieldToVariant = {
+      [ProtocolFeeField.ProtocolPerformanceFee]: {
+        protocolPerformanceFee: {},
+      },
+      [ProtocolFeeField.ProtocolManagementFee]: {
+        protocolManagementFee: {},
+      },
+    };
+
+    const fieldVariant = fieldToVariant[field];
+    if (!fieldVariant) {
+      throw new Error(`Unknown protocol fee field: ${field}`);
+    }
+
+    return await this.vaultProgram.methods
+      .updateVaultProtocolFee(fieldVariant, feeBps)
+      .accountsPartial({
+        admin,
+        vault,
+      })
+      .instruction();
+  }
+
   // --------------------------------------- Account Fetching All
 
   /**
@@ -1550,6 +1990,24 @@ export class VoltrClient extends AccountUtils {
    * @param vault - Public key of the vault
    * @returns Promise resolving to the vault account data
    */
+
+  /**
+   * Fetches the protocol account's data
+   * @returns Promise resolving to the protocol account data
+   *
+   * @example
+   * ```typescript
+   * const protocolAccount = await client.fetchProtocolAccount();
+   * ```
+   */
+  async fetchProtocolAccount() {
+    const protocol = this.findProtocol();
+    return await this.vaultProgram.account.protocol.fetch(
+      protocol,
+      this.provider.opts.commitment
+    );
+  }
+
   async fetchVaultAccount(vault: PublicKey) {
     return await this.vaultProgram.account.vault.fetch(
       vault,
@@ -1671,6 +2129,21 @@ export class VoltrClient extends AccountUtils {
   }
 
   /**
+   * Fetches the accumulated protocol fees for a vault
+   * @param vault - Public key of the vault
+   * @returns Promise resolving to the accumulated protocol fees
+   *
+   * @example
+   * ```typescript
+   * const accumulatedProtocolFees = await client.getAccumulatedProtocolFeesForVault(vaultPubkey);
+   * ```
+   */
+  async getAccumulatedProtocolFeesForVault(vault: PublicKey) {
+    const vaultAccount = await this.fetchVaultAccount(vault);
+    return vaultAccount.feeState.accumulatedLpProtocolFees;
+  }
+
+  /**
    * Fetches the current asset per LP for a vault
    * @param vault - Public key of the vault
    * @returns Promise resolving to the current asset per LP
@@ -1692,7 +2165,8 @@ export class VoltrClient extends AccountUtils {
       .add(vaultAccount.feeState.accumulatedLpManagerFees)
       .add(vaultAccount.feeState.accumulatedLpProtocolFees);
 
-    const totalLpSupply = unharvestedFeesLp.add(lpSupply);
+    const deadWeight = vaultAccount.deadWeight;
+    const totalLpSupply = unharvestedFeesLp.add(lpSupply).add(deadWeight);
 
     const currentAssetPerLp =
       vaultAccount.asset.totalValue.toNumber() / totalLpSupply.toNumber();
@@ -1753,7 +2227,8 @@ export class VoltrClient extends AccountUtils {
       .add(vaultAccount.feeState.accumulatedLpManagerFees)
       .add(vaultAccount.feeState.accumulatedLpProtocolFees);
 
-    const currentTotalLp = circulating.add(unharvestedFees);
+    const deadWeight = vaultAccount.deadWeight;
+    const currentTotalLp = circulating.add(unharvestedFees).add(deadWeight);
 
     const unrealisedFees = this.calculateUnrealisedLpFees(
       currentTotalLp,
@@ -1761,7 +2236,8 @@ export class VoltrClient extends AccountUtils {
       vaultAccount.feeUpdate.lastManagementFeeUpdateTs,
       new BN(
         vaultAccount.feeConfiguration.managerManagementFee +
-          vaultAccount.feeConfiguration.adminManagementFee
+        vaultAccount.feeConfiguration.adminManagementFee +
+        vaultAccount.feeConfiguration.protocolManagementFee
       )
     );
 
@@ -1808,10 +2284,12 @@ export class VoltrClient extends AccountUtils {
         vaultAccount.feeState.accumulatedLpProtocolFees,
         vaultAccount.feeConfiguration.redemptionFee,
         vaultAccount.feeConfiguration.managerManagementFee +
-          vaultAccount.feeConfiguration.adminManagementFee,
+        vaultAccount.feeConfiguration.adminManagementFee +
+        vaultAccount.feeConfiguration.protocolManagementFee,
         vaultAccount.feeUpdate.lastManagementFeeUpdateTs,
         lpSupply,
-        amountLpEscrowed
+        amountLpEscrowed,
+        vaultAccount.deadWeight
       ).toNumber();
 
     // Cap the withdrawal amount to the initial request amount
@@ -1966,7 +2444,8 @@ export class VoltrClient extends AccountUtils {
     vaultManagementFeeBps: number,
     vaultLastManagementFeeUpdateTs: BN,
     lpSupply: BN,
-    lpAmount: BN
+    lpAmount: BN,
+    deadWeight: BN = new BN(0)
   ): BN {
     if (lpSupply <= new BN(0)) throw new Error("Invalid LP supply");
     if (vaultTotalValue <= new BN(0)) throw new Error("Invalid total assets");
@@ -1982,7 +2461,9 @@ export class VoltrClient extends AccountUtils {
     const unharvestedFeesLp = vaultAccumulatedLpAdminFees
       .add(vaultAccumulatedLpManagerFees)
       .add(vaultAccumulatedLpProtocolFees);
-    const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
+    const lpSupplyInclAccumulatedFees = lpSupply
+      .add(unharvestedFeesLp)
+      .add(deadWeight);
     const unrealisedLpFees = this.calculateUnrealisedLpFees(
       lpSupplyInclAccumulatedFees,
       vaultTotalValue,
@@ -2044,10 +2525,12 @@ export class VoltrClient extends AccountUtils {
         vault.feeState.accumulatedLpProtocolFees,
         vault.feeConfiguration.redemptionFee,
         vault.feeConfiguration.managerManagementFee +
-          vault.feeConfiguration.adminManagementFee,
+        vault.feeConfiguration.adminManagementFee +
+        vault.feeConfiguration.protocolManagementFee,
         vault.feeUpdate.lastManagementFeeUpdateTs,
         new BN(lp.supply.toString()),
-        lpAmount
+        lpAmount,
+        vault.deadWeight
       );
 
       return amount;
@@ -2103,14 +2586,17 @@ export class VoltrClient extends AccountUtils {
       const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
         .add(vault.feeState.accumulatedLpManagerFees)
         .add(vault.feeState.accumulatedLpProtocolFees);
-      const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
+      const lpSupplyInclAccumulatedFees = lpSupply
+        .add(unharvestedFeesLp)
+        .add(vault.deadWeight);
       const unrealisedLpFees = this.calculateUnrealisedLpFees(
         lpSupplyInclAccumulatedFees,
         totalValue,
         vault.feeUpdate.lastManagementFeeUpdateTs,
         new BN(
           vault.feeConfiguration.managerManagementFee +
-            vault.feeConfiguration.adminManagementFee
+          vault.feeConfiguration.adminManagementFee +
+          vault.feeConfiguration.protocolManagementFee
         )
       );
       const lpSupplyInclFees = unrealisedLpFees.add(
@@ -2164,14 +2650,17 @@ export class VoltrClient extends AccountUtils {
     const unharvestedFeesLp = vault.feeState.accumulatedLpAdminFees
       .add(vault.feeState.accumulatedLpManagerFees)
       .add(vault.feeState.accumulatedLpProtocolFees);
-    const lpSupplyInclAccumulatedFees = lpSupply.add(unharvestedFeesLp);
+    const lpSupplyInclAccumulatedFees = lpSupply
+      .add(unharvestedFeesLp)
+      .add(vault.deadWeight);
     const unrealisedLpFees = this.calculateUnrealisedLpFees(
       lpSupplyInclAccumulatedFees,
       totalValue,
       vault.feeUpdate.lastManagementFeeUpdateTs,
       new BN(
         vault.feeConfiguration.managerManagementFee +
-          vault.feeConfiguration.adminManagementFee
+        vault.feeConfiguration.adminManagementFee +
+        vault.feeConfiguration.protocolManagementFee
       )
     );
     const lpSupplyInclFees = unrealisedLpFees.add(lpSupplyInclAccumulatedFees);

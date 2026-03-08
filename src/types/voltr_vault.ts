@@ -14,6 +14,50 @@ export type VoltrVault = {
   },
   "instructions": [
     {
+      "name": "acceptProtocolAdmin",
+      "discriminator": [
+        76,
+        35,
+        211,
+        183,
+        82,
+        72,
+        131,
+        36
+      ],
+      "accounts": [
+        {
+          "name": "pendingAdmin",
+          "signer": true,
+          "relations": [
+            "protocol"
+          ]
+        },
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "acceptVaultAdmin",
       "discriminator": [
         214,
@@ -2783,16 +2827,16 @@ export type VoltrVault = {
       "args": []
     },
     {
-      "name": "initOrUpdateProtocol",
+      "name": "initProtocol",
       "discriminator": [
-        149,
-        56,
-        57,
-        46,
-        105,
-        182,
-        61,
-        208
+        3,
+        188,
+        141,
+        237,
+        225,
+        226,
+        232,
+        210
       ],
       "accounts": [
         {
@@ -2801,11 +2845,8 @@ export type VoltrVault = {
           "signer": true
         },
         {
-          "name": "currentAdmin",
+          "name": "admin",
           "signer": true
-        },
-        {
-          "name": "newAdmin"
         },
         {
           "name": "protocol",
@@ -3442,6 +3483,1260 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "instantWithdrawStrategy",
+      "discriminator": [
+        105,
+        57,
+        166,
+        130,
+        147,
+        221,
+        250,
+        189
+      ],
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "adaptorAddReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  97,
+                  112,
+                  116,
+                  111,
+                  114,
+                  95,
+                  97,
+                  100,
+                  100,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "adaptorProgram"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategyInitReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "directWithdrawInitReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  105,
+                  114,
+                  101,
+                  99,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "vaultAssetMint",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userLpAta",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAuth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userAssetAta",
+          "docs": [
+            "The user's asset ATA to which asset tokens will be sent."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAssetAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultStrategyAuth"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "adaptorProgram"
+        },
+        {
+          "name": "assetTokenProgram"
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "isAmountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "isWithdrawAll",
+          "type": "bool"
+        },
+        {
+          "name": "userArgs",
+          "type": {
+            "option": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "instantWithdrawStrategyWithTolerance",
+      "discriminator": [
+        91,
+        21,
+        70,
+        163,
+        84,
+        67,
+        106,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "adaptorAddReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  97,
+                  112,
+                  116,
+                  111,
+                  114,
+                  95,
+                  97,
+                  100,
+                  100,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "adaptorProgram"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategyInitReceipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "directWithdrawInitReceipt",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  105,
+                  114,
+                  101,
+                  99,
+                  116,
+                  95,
+                  119,
+                  105,
+                  116,
+                  104,
+                  100,
+                  114,
+                  97,
+                  119,
+                  95,
+                  105,
+                  110,
+                  105,
+                  116,
+                  95,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "vaultAssetMint",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userLpAta",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAuth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userAssetAta",
+          "docs": [
+            "The user's asset ATA to which asset tokens will be sent."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultStrategyAssetAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultStrategyAuth"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "adaptorProgram"
+        },
+        {
+          "name": "assetTokenProgram"
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "isAmountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "isWithdrawAll",
+          "type": "bool"
+        },
+        {
+          "name": "userArgs",
+          "type": {
+            "option": "bytes"
+          }
+        },
+        {
+          "name": "tolerance",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "instantWithdrawVault",
+      "discriminator": [
+        221,
+        56,
+        115,
+        168,
+        128,
+        220,
+        235,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "userTransferAuthority",
+          "docs": [
+            "The authority that owns the LP tokens and wants to redeem them"
+          ],
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultAssetMint"
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userLpAta",
+          "docs": [
+            "The user's LP token account from which LP tokens will be burned."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "lpTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultLpMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultAssetIdleAta",
+          "docs": [
+            "The vault's associated token account for asset."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vaultAssetIdleAuth"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "vaultAssetIdleAuth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116,
+                  95,
+                  105,
+                  100,
+                  108,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userAssetAta",
+          "docs": [
+            "The user's asset ATA to which asset tokens will be sent."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "userTransferAuthority"
+              },
+              {
+                "kind": "account",
+                "path": "assetTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "vaultAssetMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "assetTokenProgram"
+        },
+        {
+          "name": "lpTokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "isAmountInLp",
+          "type": "bool"
+        },
+        {
+          "name": "isWithdrawAll",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "removeAdaptor",
       "discriminator": [
         161,
@@ -3808,6 +5103,63 @@ export type VoltrVault = {
         {
           "name": "isWithdrawAll",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "updateProtocol",
+      "discriminator": [
+        206,
+        25,
+        218,
+        114,
+        109,
+        41,
+        74,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "protocol"
+          ]
+        },
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "field",
+          "type": {
+            "defined": {
+              "name": "protocolConfigField"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": "bytes"
         }
       ]
     },
@@ -4788,6 +6140,19 @@ export type VoltrVault = {
   ],
   "events": [
     {
+      "name": "acceptProtocolAdminEvent",
+      "discriminator": [
+        196,
+        93,
+        173,
+        253,
+        175,
+        140,
+        121,
+        32
+      ]
+    },
+    {
       "name": "acceptVaultAdminEvent",
       "discriminator": [
         140,
@@ -4954,6 +6319,32 @@ export type VoltrVault = {
         28,
         245,
         107
+      ]
+    },
+    {
+      "name": "instantWithdrawStrategyEvent",
+      "discriminator": [
+        221,
+        23,
+        12,
+        215,
+        100,
+        42,
+        97,
+        149
+      ]
+    },
+    {
+      "name": "instantWithdrawVaultEvent",
+      "discriminator": [
+        46,
+        57,
+        60,
+        20,
+        6,
+        160,
+        164,
+        247
       ]
     },
     {
@@ -5136,9 +6527,38 @@ export type VoltrVault = {
       "code": 6014,
       "name": "divisionByZero",
       "msg": "Division by zero."
+    },
+    {
+      "code": 6015,
+      "name": "instantWithdrawNotAllowed",
+      "msg": "Instant withdraw not allowed."
     }
   ],
   "types": [
+    {
+      "name": "acceptProtocolAdminEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "protocol",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminBefore",
+            "type": "pubkey"
+          },
+          {
+            "name": "adminAfter",
+            "type": "pubkey"
+          },
+          {
+            "name": "acceptedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "acceptVaultAdminEvent",
       "type": {
@@ -5500,6 +6920,22 @@ export type VoltrVault = {
             "type": "u64"
           },
           {
+            "name": "vaultLpTotalAccumulatedFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightAfter",
+            "type": "u64"
+          },
+          {
             "name": "vaultHighestAssetPerLpDecimalBitsBefore",
             "type": "u128"
           },
@@ -5639,6 +7075,22 @@ export type VoltrVault = {
           },
           {
             "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightAfter",
             "type": "u64"
           },
           {
@@ -6086,6 +7538,206 @@ export type VoltrVault = {
       }
     },
     {
+      "name": "instantWithdrawStrategyEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "isAmountInLp",
+            "type": "bool"
+          },
+          {
+            "name": "isWithdrawAll",
+            "type": "bool"
+          },
+          {
+            "name": "userAmountAssetWithdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "userAmountLpBurned",
+            "type": "u64"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategy",
+            "type": "pubkey"
+          },
+          {
+            "name": "strategyInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "directWithdrawInitReceipt",
+            "type": "pubkey"
+          },
+          {
+            "name": "adaptorProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueUnlockedBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "strategyPositionValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "strategyPositionValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawnTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "instantWithdrawVaultEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "isAmountInLp",
+            "type": "bool"
+          },
+          {
+            "name": "isWithdrawAll",
+            "type": "bool"
+          },
+          {
+            "name": "userAmountAssetWithdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "userAmountLpBurned",
+            "type": "u64"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValueUnlockedBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultAssetTotalValueAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
+          },
+          {
+            "name": "withdrawnTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "lockedProfitState",
       "serialization": "bytemuckunsafe",
       "repr": {
@@ -6160,6 +7812,13 @@ export type VoltrVault = {
             }
           },
           {
+            "name": "pendingAdmin",
+            "docs": [
+              "The pending admin for admin transfer."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "reserved",
             "docs": [
               "Reserved space for future fields"
@@ -6167,9 +7826,23 @@ export type VoltrVault = {
             "type": {
               "array": [
                 "u8",
-                64
+                32
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "protocolConfigField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "operationalState"
+          },
+          {
+            "name": "pendingAdmin"
           }
         ]
       }
@@ -6418,24 +8091,24 @@ export type VoltrVault = {
         "kind": "struct",
         "fields": [
           {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
             "name": "protocol",
             "type": "pubkey"
           },
           {
-            "name": "adminBefore",
-            "type": "pubkey"
+            "name": "field",
+            "type": "string"
           },
           {
-            "name": "adminAfter",
-            "type": "pubkey"
+            "name": "oldValue",
+            "type": "string"
           },
           {
-            "name": "operationalStateBefore",
-            "type": "u16"
-          },
-          {
-            "name": "operationalStateAfter",
-            "type": "u16"
+            "name": "newValue",
+            "type": "string"
           },
           {
             "name": "updatedTs",
@@ -7199,6 +8872,22 @@ export type VoltrVault = {
           },
           {
             "name": "vaultLpSupplyInclFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpTotalAccumulatedFeesAfter",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightBefore",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpDeadWeightAfter",
             "type": "u64"
           },
           {
