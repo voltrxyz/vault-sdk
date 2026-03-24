@@ -316,6 +316,83 @@
       "args": []
     },
     {
+      "name": "calibrate_high_water_mark_unsafe",
+      "discriminator": [
+        162,
+        16,
+        96,
+        202,
+        178,
+        8,
+        187,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancel_request_withdraw_vault",
       "discriminator": [
         231,
@@ -6186,6 +6263,19 @@
       ]
     },
     {
+      "name": "CalibrateHighWaterMarkUnsafeEvent",
+      "discriminator": [
+        205,
+        76,
+        169,
+        255,
+        37,
+        228,
+        65,
+        130
+      ]
+    },
+    {
       "name": "CancelRequestWithdrawVaultEvent",
       "discriminator": [
         46,
@@ -6716,6 +6806,42 @@
           {
             "name": "amount_lp_burned",
             "type": "u64"
+          },
+          {
+            "name": "calibrated_ts",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CalibrateHighWaterMarkUnsafeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_asset_total_value",
+            "type": "u64"
+          },
+          {
+            "name": "vault_lp_supply_incl_fees",
+            "type": "u64"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_before",
+            "type": "u128"
+          },
+          {
+            "name": "vault_highest_asset_per_lp_decimal_bits_after",
+            "type": "u128"
           },
           {
             "name": "calibrated_ts",

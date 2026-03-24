@@ -322,6 +322,83 @@ export type VoltrVault = {
       "args": []
     },
     {
+      "name": "calibrateHighWaterMarkUnsafe",
+      "discriminator": [
+        162,
+        16,
+        96,
+        202,
+        178,
+        8,
+        187,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vaultLpMint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  108,
+                  112,
+                  95,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancelRequestWithdrawVault",
       "discriminator": [
         231,
@@ -6192,6 +6269,19 @@ export type VoltrVault = {
       ]
     },
     {
+      "name": "calibrateHighWaterMarkUnsafeEvent",
+      "discriminator": [
+        205,
+        76,
+        169,
+        255,
+        37,
+        228,
+        65,
+        130
+      ]
+    },
+    {
       "name": "cancelRequestWithdrawVaultEvent",
       "discriminator": [
         46,
@@ -6722,6 +6812,42 @@ export type VoltrVault = {
           {
             "name": "amountLpBurned",
             "type": "u64"
+          },
+          {
+            "name": "calibratedTs",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "calibrateHighWaterMarkUnsafeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "vaultAssetTotalValue",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLpSupplyInclFees",
+            "type": "u64"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsBefore",
+            "type": "u128"
+          },
+          {
+            "name": "vaultHighestAssetPerLpDecimalBitsAfter",
+            "type": "u128"
           },
           {
             "name": "calibratedTs",
